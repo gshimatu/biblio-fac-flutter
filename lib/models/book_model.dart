@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Modèle représentant un livre stocké dans Firestore.
+/// Utilisé pour sérialiser / désérialiser les documents de la collection `books`.
 class BookModel {
   final String id;
   final String title;
@@ -46,6 +48,7 @@ class BookModel {
     );
   }
 
+  /// Convertit l'objet en Map compatible Firestore.
   Map<String, dynamic> toMap() {
     return {
       'title': title,

@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Rôles possibles pour un utilisateur.
 enum UserRole { student, admin }
 
+/// Modèle utilisateur correspondant aux documents `users`.
+/// Contient les informations de profil et métadonnées (dates).
 class UserModel {
   final String uid;
   final String fullName;
@@ -44,6 +47,7 @@ class UserModel {
       phoneNumber: map['phoneNumber'],
       address: map['address'],
       profileImageUrl: map['profileImageUrl'],
+      // role attendu en chaîne ('admin' ou 'student')
       role: map['role'] == 'admin' ? UserRole.admin : UserRole.student,
       createdAt: (map['createdAt'] as Timestamp).toDate(),
       lastLogin: (map['lastLogin'] as Timestamp).toDate(),

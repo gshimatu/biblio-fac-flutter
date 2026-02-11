@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Statut d'un prêt.
 enum LoanStatus { pending, approved, returned, rejected }
 
+/// Modèle d'un emprunt : lie un `userId` et un `bookId` avec des dates.
 class LoanModel {
   final String id;
   final String userId;
@@ -31,8 +33,8 @@ class LoanModel {
       returnDate: map['returnDate'] != null
           ? (map['returnDate'] as Timestamp).toDate()
           : null,
-      status: LoanStatus.values
-          .firstWhere((e) => e.name == map['status']),
+      // map['status'] doit contenir la valeur textuelle de l'enum (ex: 'approved')
+      status: LoanStatus.values.firstWhere((e) => e.name == map['status']),
     );
   }
 
@@ -42,9 +44,8 @@ class LoanModel {
       'bookId': bookId,
       'loanDate': Timestamp.fromDate(loanDate),
       'dueDate': Timestamp.fromDate(dueDate),
-      'returnDate':
-          returnDate != null ? Timestamp.fromDate(returnDate!) : null,
-      'status': status.name,
+      'returnDate': returnDate != null ? Timestamp.fromDate(returnDate!) : null,
+      'status': status.name, // valeur textuelle conservée en base
     };
   }
 }
