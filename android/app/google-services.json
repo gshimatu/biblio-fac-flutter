@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "424910647692",
+    "project_id": "biblio-fac",
+    "storage_bucket": "biblio-fac.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:424910647692:android:d2dca5a9898c9df98626a9",
+        "android_client_info": {
+          "package_name": "com.example.biblio_fac"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6vvQJxSniZkxta9rRREuHj1qkyu_d2UI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
