@@ -144,49 +144,61 @@ class HomePage extends StatelessWidget {
                               const SizedBox(height: 32),
                               Row(
                                 children: [
-                                  ElevatedButton.icon(
-                                    onPressed: () {},
-                                    icon: const Icon(Icons.search_rounded),
-                                    label: const Text('Explorer le catalogue'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white,
-                                      foregroundColor: const Color(0xFF272662),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 28,
-                                        vertical: 16,
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      onPressed: () {},
+                                      icon: const Icon(Icons.search_rounded),
+                                      label: const Text(
+                                        'Explorer le catalogue',
                                       ),
-                                      textStyle: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 16,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: const Color(
+                                          0xFF272662,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 16,
+                                        ),
+                                        textStyle: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 16),
-                                  OutlinedButton.icon(
-                                    onPressed: () {},
-                                    icon: const Icon(
-                                      Icons.info_outline_rounded,
-                                    ),
-                                    label: const Text('En savoir plus'),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.white,
-                                      side: const BorderSide(
-                                        color: Colors.white,
-                                        width: 2,
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: () {},
+                                      icon: const Icon(
+                                        Icons.info_outline_rounded,
                                       ),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 24,
-                                        vertical: 16,
-                                      ),
-                                      textStyle: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 16,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30),
+                                      label: const Text('En savoir plus'),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.white,
+                                        side: const BorderSide(
+                                          color: Colors.white,
+                                          width: 2,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 16,
+                                        ),
+                                        textStyle: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
