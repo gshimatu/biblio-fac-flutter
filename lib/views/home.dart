@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'auth/login_view.dart';
+import 'auth/register_view.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -12,7 +14,7 @@ class HomePage extends StatelessWidget {
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // AppBar 
+            // AppBar
             SliverAppBar(
               floating: true,
               backgroundColor: Colors.transparent,
@@ -37,20 +39,22 @@ class HomePage extends StatelessWidget {
               actions: [
                 TextButton(
                   onPressed: () {
-                    // Navigation vers connexion
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const LoginView()),
+                    );
                   },
                   style: TextButton.styleFrom(
                     foregroundColor: const Color(0xFF1D9E6C),
-                    textStyle: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                   ),
                   child: const Text('Connexion'),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: () {
-                    // Navigation vers inscription
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const RegisterView()),
+                    );
                   },
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFF272662),
@@ -58,9 +62,7 @@ class HomePage extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    textStyle: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                   ),
                   child: const Text('Inscription'),
                 ),
@@ -165,11 +167,16 @@ class HomePage extends StatelessWidget {
                                   const SizedBox(width: 16),
                                   OutlinedButton.icon(
                                     onPressed: () {},
-                                    icon: const Icon(Icons.info_outline_rounded),
+                                    icon: const Icon(
+                                      Icons.info_outline_rounded,
+                                    ),
                                     label: const Text('En savoir plus'),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: Colors.white,
-                                      side: const BorderSide(color: Colors.white, width: 2),
+                                      side: const BorderSide(
+                                        color: Colors.white,
+                                        width: 2,
+                                      ),
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 24,
                                         vertical: 16,
@@ -256,7 +263,9 @@ class HomePage extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFFF0F4FF),
                       borderRadius: BorderRadius.circular(28),
-                      border: Border.all(color: const Color(0xFF272662).withOpacity(0.1)),
+                      border: Border.all(
+                        color: const Color(0xFF272662).withOpacity(0.1),
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -285,7 +294,9 @@ class HomePage extends StatelessWidget {
                               const SizedBox(height: 20),
                               FilledButton.icon(
                                 onPressed: () {},
-                                icon: const Icon(Icons.admin_panel_settings_rounded),
+                                icon: const Icon(
+                                  Icons.admin_panel_settings_rounded,
+                                ),
                                 label: const Text('Accéder à l’administration'),
                                 style: FilledButton.styleFrom(
                                   backgroundColor: const Color(0xFF272662),
