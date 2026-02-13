@@ -87,6 +87,34 @@ class _RegisterViewState extends State<RegisterView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.white,
+        elevation: 8,
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                  },
+                  icon: const Icon(Icons.home_rounded),
+                  label: Text(
+                    'Accueil',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFF272662),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),

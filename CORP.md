@@ -37,7 +37,7 @@ Téléchargement : [Google Cloud SDK Installer](https://docs.cloud.google.com/sd
 
 Suivre les instructions d'installation pour Windows (ou autre OS).
 
-Après installation, lancer le Google Cloud SDK Shell (en tant qu'administrateur si n�cessaire).
+Après installation, lancer le Google Cloud SDK Shell (en tant qu'administrateur si nécessaire).
 
 ### 2.2 Authentification avec gcloud
 Dans le shell, nous nous sommes connectés avec le compte Google propriétaire du projet Firebase :
