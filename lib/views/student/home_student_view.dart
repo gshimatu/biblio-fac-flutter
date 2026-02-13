@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/loan_provider.dart';
 import 'book_details_view.dart';
+import 'profile_details_view.dart';
 
 class HomeStudentView extends StatefulWidget {
   const HomeStudentView({super.key});
@@ -49,7 +50,9 @@ class _HomeStudentViewState extends State<HomeStudentView> {
       ]);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
       }
     }
   }
@@ -67,8 +70,8 @@ class _HomeStudentViewState extends State<HomeStudentView> {
     final loanProvider = Provider.of<LoanProvider>(context, listen: false);
 
     final user = authProvider.currentUser;
-    // Redirection si utilisateur non connecté
     if (user == null) {
+      // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).pushReplacementNamed('/login');
       });
@@ -84,7 +87,10 @@ class _HomeStudentViewState extends State<HomeStudentView> {
     }).toList();
 
     final userLoans = loanProvider.loans
-        .where((loan) => loan.userId == user.uid && loan.status == LoanStatus.approved)
+        .where(
+          (loan) =>
+              loan.userId == user.uid && loan.status == LoanStatus.approved,
+        )
         .toList();
 
     return Scaffold(
@@ -100,12 +106,32 @@ class _HomeStudentViewState extends State<HomeStudentView> {
             fontSize: 20,
           ),
         ),
+        leading: IconButton(
+          icon: const Icon(Icons.home, color: Color(0xFF272662)),
+          onPressed: () {
+            // Retourner à la page d'accueil publique sans déconnexion
+            Navigator.of(context).pushReplacementNamed('/');
+          },
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person, color: Color(0xFF272662)),
-            onPressed: () {
-              // TODO: Navigate to profile
+          // Photo de profil cliquable
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).pushNamed('/profile');
             },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: const Color(0xFFE0E0E6),
+                backgroundImage: user.profileImageUrl != null
+                    ? NetworkImage(user.profileImageUrl!)
+                    : null,
+                child: user.profileImageUrl == null
+                    ? const Icon(Icons.person, size: 20, color: Color(0xFF5A5F7A))
+                    : null,
+              ),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.logout, color: Color(0xFF272662)),
@@ -177,8 +203,13 @@ class _HomeStudentViewState extends State<HomeStudentView> {
                 },
                 decoration: InputDecoration(
                   hintText: 'Titre, auteur ou ISBN...',
-                  hintStyle: GoogleFonts.poppins(color: const Color(0xFF5A5F7A)),
-                  prefixIcon: const Icon(Icons.search, color: Color(0xFF5A5F7A)),
+                  hintStyle: GoogleFonts.poppins(
+                    color: const Color(0xFF5A5F7A),
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: Color(0xFF5A5F7A),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: Color(0xFFE0E0E6)),
@@ -189,9 +220,15 @@ class _HomeStudentViewState extends State<HomeStudentView> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF272662), width: 2),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF272662),
+                      width: 2,
+                    ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -303,7 +340,9 @@ class _HomeStudentViewState extends State<HomeStudentView> {
                       Icon(
                         Icons.library_books,
                         size: 64,
-                        color: const Color(0xFF5A5F7A).withValues(alpha: 0.5),
+                        color: const Color(
+                          0xFF5A5F7A,
+                        ).withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -322,19 +361,22 @@ class _HomeStudentViewState extends State<HomeStudentView> {
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.7,
-                  ),
+                  gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 0.7,
+                      ),
                   itemCount: filteredBooks.length,
                   itemBuilder: (context, index) {
                     final book = filteredBooks[index];
                     return GestureDetector(
                       onTap: () {
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => BookDetailsView(book: book)),
+                          MaterialPageRoute(
+                            builder: (_) => BookDetailsView(book: book),
+                          ),
                         );
                       },
                       child: Container(
@@ -391,7 +433,9 @@ class _HomeStudentViewState extends State<HomeStudentView> {
                             Row(
                               children: [
                                 Icon(
-                                  book.availableCopies > 0 ? Icons.check_circle : Icons.cancel,
+                                  book.availableCopies > 0
+                                      ? Icons.check_circle
+                                      : Icons.cancel,
                                   size: 16,
                                   color: book.availableCopies > 0
                                       ? const Color(0xFF1D9E6C)

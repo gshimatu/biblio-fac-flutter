@@ -7,6 +7,7 @@ import 'views/auth/login_view.dart';
 import 'views/auth/register_view.dart';
 import 'views/student/home_student_view.dart';
 import 'views/admin/home_admin_view.dart';
+import 'views/student/profile_details_view.dart';
 import 'providers/auth_provider.dart';
 import 'providers/book_provider.dart';
 import 'providers/loan_provider.dart';
@@ -32,7 +33,8 @@ class MyApp extends StatelessWidget {
         title: 'Biblio Fac',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF272662)),
+          useMaterial3: true,
         ),
         initialRoute: '/',
         routes: {
@@ -41,6 +43,7 @@ class MyApp extends StatelessWidget {
           '/register': (context) => const RegisterView(),
           '/student': (context) => const HomeStudentView(),
           '/admin': (context) => const HomeAdminView(),
+          '/profile': (context) => const ProfileDetailsView(),
         },
       ),
     );

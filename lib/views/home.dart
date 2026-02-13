@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'auth/login_view.dart';
-import 'auth/register_view.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../models/user_model.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.currentUser;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
@@ -37,40 +41,61 @@ class HomePage extends StatelessWidget {
                 ),
               ),
               actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const LoginView()),
-                    );
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFF1D9E6C),
-                    textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                  ),
-                  child: const Text('Connexion'),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const RegisterView()),
-                    );
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF272662),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                if (user != null) ...[
+                  // Utilisateur connecté : afficher la photo de profil cliquable
+                  GestureDetector(
+                    onTap: () {
+                      // Rediriger vers le dashboard selon le rôle
+                      final route = user.role == UserRole.admin ? '/admin' : '/student';
+                      Navigator.of(context).pushReplacementNamed(route);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16.0),
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: const Color(0xFFE0E0E6),
+                        backgroundImage: user.profileImageUrl != null
+                            ? NetworkImage(user.profileImageUrl!)
+                            : null,
+                        child: user.profileImageUrl == null
+                            ? const Icon(Icons.person, size: 20, color: Color(0xFF5A5F7A))
+                            : null,
+                      ),
                     ),
-                    textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                   ),
-                  child: const Text('Inscription'),
-                ),
+                ] else ...[
+                  // Utilisateur non connecté : boutons Connexion/Inscription
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed('/login');
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF1D9E6C),
+                      textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                    ),
+                    child: const Text('Connexion'),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed('/register');
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF272662),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      textStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                    ),
+                    child: const Text('Inscription'),
+                  ),
+                ],
                 const SizedBox(width: 20),
               ],
             ),
 
-            // Contenu principal
+            // Contenu principal (identique à l'original)
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               sliver: SliverList(
@@ -142,63 +167,53 @@ class HomePage extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 32),
-                              Row(
+                              Wrap(
+                                spacing: 16,
+                                runSpacing: 16,
+                                alignment: WrapAlignment.start,
                                 children: [
-                                  Expanded(
-                                    child: ElevatedButton.icon(
-                                      onPressed: () {},
-                                      icon: const Icon(Icons.search_rounded),
-                                      label: const Text(
-                                        'Explorer le catalogue',
+                                  ElevatedButton.icon(
+                                    onPressed: () {},
+                                    icon: const Icon(Icons.search_rounded),
+                                    label: const Text('Explorer le catalogue'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      foregroundColor: const Color(0xFF272662),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 28,
+                                        vertical: 16,
                                       ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: const Color(
-                                          0xFF272662,
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 16,
-                                        ),
-                                        textStyle: GoogleFonts.poppins(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            30,
-                                          ),
-                                        ),
+                                      textStyle: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      onPressed: () {},
-                                      icon: const Icon(
-                                        Icons.info_outline_rounded,
+                                  OutlinedButton.icon(
+                                    onPressed: () {},
+                                    icon: const Icon(
+                                      Icons.info_outline_rounded,
+                                    ),
+                                    label: const Text('En savoir plus'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                      side: const BorderSide(
+                                        color: Colors.white,
+                                        width: 2,
                                       ),
-                                      label: const Text('En savoir plus'),
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: Colors.white,
-                                        side: const BorderSide(
-                                          color: Colors.white,
-                                          width: 2,
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 16,
-                                        ),
-                                        textStyle: GoogleFonts.poppins(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            30,
-                                          ),
-                                        ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 16,
+                                      ),
+                                      textStyle: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
                                       ),
                                     ),
                                   ),
@@ -269,14 +284,14 @@ class HomePage extends StatelessWidget {
                   ),
                   const SizedBox(height: 48),
 
-                  // Section espace administrateur (pour bibliothécaires)
+                  // Section espace administrateur
                   Container(
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF0F4FF),
                       borderRadius: BorderRadius.circular(28),
                       border: Border.all(
-                        color: const Color(0xFF272662).withOpacity(0.1),
+                        color: const Color(0xFF272662).withValues(alpha: 0.1),
                       ),
                     ),
                     child: Row(
@@ -333,7 +348,7 @@ class HomePage extends StatelessWidget {
                           width: 120,
                           height: 120,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF272662).withOpacity(0.05),
+                            color: const Color(0xFF272662).withValues(alpha: 0.05),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -391,7 +406,7 @@ class _FeatureCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 28),
