@@ -70,7 +70,9 @@ class _RegisterViewState extends State<RegisterView> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Inscription réussie ! Connectez-vous.')),
+          const SnackBar(
+            content: Text('Inscription réussie ! Connectez-vous.'),
+          ),
         );
         Navigator.of(context).pushReplacementNamed('/login');
       }
@@ -118,7 +120,9 @@ class _RegisterViewState extends State<RegisterView> {
                   decoration: BoxDecoration(
                     color: Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: Colors.red.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Text(
                     _errorMessage!,
@@ -131,19 +135,36 @@ class _RegisterViewState extends State<RegisterView> {
               if (_errorMessage != null) const SizedBox(height: 24),
 
               // Full Name
-              _buildField('Nom complet', _fullNameController, 'Musekedi Abuyaba'),
+              _buildField(
+                'Nom complet',
+                _fullNameController,
+                'Musekedi Abuyaba',
+              ),
               const SizedBox(height: 20),
 
               // Email
-              _buildField('Adresse e-mail', _emailController, 'musekedi@gmail.com'),
+              _buildField(
+                'Adresse e-mail',
+                _emailController,
+                'musekedi@gmail.com',
+              ),
               const SizedBox(height: 20),
 
               // Password
-              _buildField('Mot de passe', _passwordController, '••••••••', obscure: true),
+              _buildField(
+                'Mot de passe',
+                _passwordController,
+                '••••••••',
+                obscure: true,
+              ),
               const SizedBox(height: 20),
 
               // Matricule
-              _buildField('Numéro d\'étudiant', _matriculeController, 'SI2024001'),
+              _buildField(
+                'Numéro d\'étudiant',
+                _matriculeController,
+                'SI2024001',
+              ),
               const SizedBox(height: 20),
 
               // Faculty
@@ -170,7 +191,9 @@ class _RegisterViewState extends State<RegisterView> {
                   onPressed: _isLoading ? null : _handleRegister,
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFF272662),
-                    disabledBackgroundColor: const Color(0xFF272662).withValues(alpha: 0.5),
+                    disabledBackgroundColor: const Color(
+                      0xFF272662,
+                    ).withValues(alpha: 0.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -181,12 +204,17 @@ class _RegisterViewState extends State<RegisterView> {
                           width: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       : Text(
                           'S\'inscrire',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 16),
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
                         ),
                 ),
               ),
@@ -197,7 +225,10 @@ class _RegisterViewState extends State<RegisterView> {
                 child: RichText(
                   text: TextSpan(
                     text: 'Vous avez déjà un compte ? ',
-                    style: GoogleFonts.poppins(color: const Color(0xFF5A5F7A), fontSize: 14),
+                    style: GoogleFonts.poppins(
+                      color: const Color(0xFF5A5F7A),
+                      fontSize: 14,
+                    ),
                     children: [
                       TextSpan(
                         text: 'Connectez-vous',
@@ -208,7 +239,9 @@ class _RegisterViewState extends State<RegisterView> {
                         ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            Navigator.of(context).pushReplacementNamed('/login');
+                            Navigator.of(
+                              context,
+                            ).pushReplacementNamed('/login');
                           },
                       ),
                     ],
@@ -258,7 +291,10 @@ class _RegisterViewState extends State<RegisterView> {
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFF272662), width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
           ),
         ),
       ],
