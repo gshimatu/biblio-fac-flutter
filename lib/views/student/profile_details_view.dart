@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -27,7 +28,11 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
 
   bool _isLoading = false;
   String? _errorMessage;
-  File? _imageFile;
+
+  // Pour l'image sélectionnée
+  File? _imageFile; // pour mobile
+  String? _selectedImagePath; // pour web (URL blob)
+
   final ImagePicker _picker = ImagePicker();
   final UserService _userService = UserService();
 
@@ -44,7 +49,6 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
       _promotionController = TextEditingController(text: user.promotion ?? '');
       _matriculeController = TextEditingController(text: user.matricule ?? '');
     } else {
-      // Au cas où l'utilisateur n'est pas connecté, on redirige
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).pushReplacementNamed('/login');
       });
@@ -67,23 +71,45 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
     final XFile? pickedFile =
         await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
+      if (kIsWeb) {
+        // Sur le web, on garde le path qui est une URL blob
+        setState(() {
+          _selectedImagePath = pickedFile.path;
+          _imageFile = null;
+        });
+      } else {
+        // Sur mobile, on utilise File
+        setState(() {
+          _imageFile = File(pickedFile.path);
+          _selectedImagePath = null;
+        });
+      }
     }
   }
 
   Future<String?> _uploadImage(String uid) async {
-    if (_imageFile == null) return null;
     try {
       final ref = FirebaseStorage.instance
           .ref()
           .child('profile_images')
           .child('$uid.jpg');
-      await ref.putFile(_imageFile!);
+
+      if (kIsWeb) {
+        // Sur le web, on utilise putData avec les bytes
+        if (_selectedImagePath == null) return null;
+        final XFile pickedFile = XFile(_selectedImagePath!);
+        final bytes = await pickedFile.readAsBytes();
+        await ref.putData(bytes);
+      } else {
+        // Sur mobile, on utilise putFile
+        if (_imageFile == null) return null;
+        await ref.putFile(_imageFile!);
+      }
       return await ref.getDownloadURL();
     } catch (e) {
-      setState(() => _errorMessage = 'Erreur upload image: $e');
+      if (mounted) {
+        setState(() => _errorMessage = 'Erreur upload image: $e');
+      }
       return null;
     }
   }
@@ -102,7 +128,8 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
       if (user == null) throw Exception('Utilisateur non connecté');
 
       String? imageUrl;
-      if (_imageFile != null) {
+      // Vérifier si une nouvelle image a été sélectionnée
+      if ((kIsWeb && _selectedImagePath != null) || (!kIsWeb && _imageFile != null)) {
         imageUrl = await _uploadImage(user.uid);
       }
 
@@ -128,7 +155,7 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
       );
 
       await _userService.updateUser(updatedUser);
-      authProvider.setUser(updatedUser); // Mettre à jour le provider
+      authProvider.setUser(updatedUser);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -137,7 +164,9 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
         Navigator.of(context).pop();
       }
     } catch (e) {
-      setState(() => _errorMessage = e.toString());
+      if (mounted) {
+        setState(() => _errorMessage = e.toString());
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -166,6 +195,7 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
 
     if (confirm != true) return;
 
+    if (!mounted) return;
     setState(() => _isLoading = true);
 
     try {
@@ -183,19 +213,19 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
         }
       }
 
-      // 2. Supprimer les données Firestore (vous pouvez aussi supprimer les emprunts, etc.)
+      // 2. Supprimer les données Firestore
       await _userService.deleteUser(user.uid);
 
-      // 3. Supprimer le compte Firebase Auth (nécessite une réauthentification récente)
-      // Ici, on utilise le AuthController qui doit gérer la suppression
-      // Pour simplifier, on appelle une méthode du contrôleur
-      await authProvider.deleteAccount(); // à implémenter dans AuthProvider
+      // 3. Supprimer le compte Firebase Auth
+      await authProvider.deleteAccount();
 
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/');
       }
     } catch (e) {
-      setState(() => _errorMessage = 'Erreur lors de la suppression: $e');
+      if (mounted) {
+        setState(() => _errorMessage = 'Erreur lors de la suppression: $e');
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -205,6 +235,19 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context).currentUser;
     if (user == null) return const SizedBox.shrink();
+
+    // Déterminer l'image à afficher
+    ImageProvider? imageProvider;
+    if (_selectedImagePath != null) {
+      // Web : URL blob
+      imageProvider = NetworkImage(_selectedImagePath!);
+    } else if (_imageFile != null) {
+      // Mobile : fichier local
+      imageProvider = FileImage(_imageFile!);
+    } else if (user.profileImageUrl != null) {
+      // Image existante sur Firebase
+      imageProvider = NetworkImage(user.profileImageUrl!);
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -237,12 +280,8 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
                     CircleAvatar(
                       radius: 60,
                       backgroundColor: const Color(0xFFE0E0E6),
-                      backgroundImage: _imageFile != null
-                          ? FileImage(_imageFile!)
-                          : (user.profileImageUrl != null
-                              ? NetworkImage(user.profileImageUrl!)
-                              : null) as ImageProvider?,
-                      child: (user.profileImageUrl == null && _imageFile == null)
+                      backgroundImage: imageProvider,
+                      child: imageProvider == null
                           ? const Icon(Icons.person, size: 60, color: Color(0xFF5A5F7A))
                           : null,
                     ),
@@ -270,7 +309,7 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
               _buildField('Nom complet', _fullNameController, 'Votre nom', Icons.person),
               const SizedBox(height: 16),
               _buildField('Email', _emailController, 'email@exemple.com', Icons.email,
-                  enabled: false), // L'email n'est pas modifiable
+                  enabled: false),
               const SizedBox(height: 16),
               _buildField('Téléphone', _phoneController, '+243...', Icons.phone),
               const SizedBox(height: 16),
