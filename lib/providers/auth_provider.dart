@@ -37,4 +37,11 @@ class AuthProvider with ChangeNotifier {
     _currentUser = user;
     notifyListeners();
   }
+
+  Future<void> deleteAccount() async {
+    // Appeler le AuthController pour supprimer l'utilisateur Firebase Auth
+    await _authController.deleteUser();
+    _currentUser = null;
+    notifyListeners();
+  }
 }

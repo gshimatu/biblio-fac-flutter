@@ -77,4 +77,10 @@ class AuthController {
   }
 
   User? get currentFirebaseUser => _authService.currentUser;
+
+  Future<void> deleteUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception('Aucun utilisateur connecté');
+    await user.delete();
+  }
 }
