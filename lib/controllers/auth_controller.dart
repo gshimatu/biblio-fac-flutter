@@ -19,19 +19,16 @@ class AuthController {
     required String phoneNumber,
     required String address,
   }) async {
-    // Création du compte Firebase Auth
     final credential = await _authService.registerWithEmail(
       email: email,
       password: password,
     );
 
     final firebaseUser = credential.user;
-
     if (firebaseUser == null) {
       throw Exception("Erreur lors de la création du compte.");
     }
 
-    // Création du document Firestore lié au UID
     final userModel = UserModel(
       uid: firebaseUser.uid,
       fullName: fullName,
@@ -51,7 +48,7 @@ class AuthController {
     await _userService.createUser(userModel);
   }
 
-  /// Connexion utilisateur
+  /// Connexion utilisateur (paramètres nommés)
   Future<UserModel?> login({
     required String email,
     required String password,
@@ -62,29 +59,22 @@ class AuthController {
     );
 
     final firebaseUser = credential.user;
-
     if (firebaseUser == null) {
       throw Exception("Utilisateur introuvable.");
     }
 
-    // Vérifier si document Firestore existe
     final user = await _userService.getUserById(firebaseUser.uid);
-
     if (user == null) {
       throw Exception("Données utilisateur non trouvées.");
     }
 
-    // Mise à jour du lastLogin
     await _userService.updateLastLogin(firebaseUser.uid);
-
     return user;
   }
 
-  /// Déconnexion
   Future<void> logout() async {
     await _authService.logout();
   }
 
-  /// Récupérer utilisateur connecté
   User? get currentFirebaseUser => _authService.currentUser;
 }

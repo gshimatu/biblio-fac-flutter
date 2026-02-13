@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../controllers/auth_controller.dart';
-import 'register_view.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../models/user_model.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -14,7 +15,6 @@ class LoginView extends StatefulWidget {
 class _LoginViewState extends State<LoginView> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authController = AuthController();
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -37,19 +37,31 @@ class _LoginViewState extends State<LoginView> {
     });
 
     try {
-      final user = await _authController.login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.login(
+        _emailController.text.trim(),
+        _passwordController.text,
       );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Bienvenue, ${user!.fullName}!')),
-        );
-        Navigator.of(context).pop();
+      final user = authProvider.currentUser;
+      if (!mounted) return;
+
+      if (user == null) {
+        setState(() => _errorMessage = 'Erreur inattendue : utilisateur non trouvé');
+        return;
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Bienvenue, ${user.fullName}!')),
+      );
+
+      // Redirection selon le rôle
+      final route = user.role == UserRole.admin ? '/admin' : '/student';
+      Navigator.of(context).pushReplacementNamed(route);
     } catch (e) {
-      setState(() => _errorMessage = e.toString());
+      if (mounted) {
+        setState(() => _errorMessage = e.toString());
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -90,9 +102,9 @@ class _LoginViewState extends State<LoginView> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.withOpacity(0.3)),
+                    border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                   ),
                   child: Text(
                     _errorMessage!,
@@ -118,9 +130,7 @@ class _LoginViewState extends State<LoginView> {
                 controller: _emailController,
                 decoration: InputDecoration(
                   hintText: 'tamundelb@gmail.com',
-                  hintStyle: GoogleFonts.poppins(
-                    color: const Color(0xFF5A5F7A),
-                  ),
+                  hintStyle: GoogleFonts.poppins(color: const Color(0xFF5A5F7A)),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: Color(0xFFE0E0E6)),
@@ -131,15 +141,9 @@ class _LoginViewState extends State<LoginView> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF272662),
-                      width: 2,
-                    ),
+                    borderSide: const BorderSide(color: Color(0xFF272662), width: 2),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
               ),
               const SizedBox(height: 24),
@@ -159,9 +163,7 @@ class _LoginViewState extends State<LoginView> {
                 obscureText: true,
                 decoration: InputDecoration(
                   hintText: '••••••••',
-                  hintStyle: GoogleFonts.poppins(
-                    color: const Color(0xFF5A5F7A),
-                  ),
+                  hintStyle: GoogleFonts.poppins(color: const Color(0xFF5A5F7A)),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: Color(0xFFE0E0E6)),
@@ -172,15 +174,9 @@ class _LoginViewState extends State<LoginView> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF272662),
-                      width: 2,
-                    ),
+                    borderSide: const BorderSide(color: Color(0xFF272662), width: 2),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
               ),
               const SizedBox(height: 32),
@@ -193,9 +189,7 @@ class _LoginViewState extends State<LoginView> {
                   onPressed: _isLoading ? null : _handleLogin,
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFF272662),
-                    disabledBackgroundColor: const Color(
-                      0xFF272662,
-                    ).withOpacity(0.5),
+                    disabledBackgroundColor: const Color(0xFF272662).withValues(alpha: 0.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -206,31 +200,23 @@ class _LoginViewState extends State<LoginView> {
                           width: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : Text(
                           'Se connecter',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
+                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 16),
                         ),
                 ),
               ),
               const SizedBox(height: 24),
 
-              // Register link
+              // Register link (route nommée)
               Center(
                 child: RichText(
                   text: TextSpan(
                     text: 'Vous n\'avez pas de compte ? ',
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xFF5A5F7A),
-                      fontSize: 14,
-                    ),
+                    style: GoogleFonts.poppins(color: const Color(0xFF5A5F7A), fontSize: 14),
                     children: [
                       TextSpan(
                         text: 'Inscrivez-vous',
@@ -241,11 +227,7 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
-                            Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(
-                                builder: (_) => const RegisterView(),
-                              ),
-                            );
+                            Navigator.of(context).pushReplacementNamed('/register');
                           },
                       ),
                     ],
