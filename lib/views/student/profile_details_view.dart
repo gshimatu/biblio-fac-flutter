@@ -72,13 +72,11 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
         await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (pickedFile != null) {
       if (kIsWeb) {
-        // Sur le web, on garde le path qui est une URL blob
         setState(() {
           _selectedImagePath = pickedFile.path;
           _imageFile = null;
         });
       } else {
-        // Sur mobile, on utilise File
         setState(() {
           _imageFile = File(pickedFile.path);
           _selectedImagePath = null;
@@ -87,7 +85,9 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
     }
   }
 
-  Future<String?> _uploadImage(String uid) async {
+  /// Téléverse l'image et retourne l'URL de téléchargement.
+  /// Lance une exception en cas d'échec.
+  Future<String> _uploadImage(String uid) async {
     try {
       final ref = FirebaseStorage.instance
           .ref()
@@ -95,22 +95,21 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
           .child('$uid.jpg');
 
       if (kIsWeb) {
-        // Sur le web, on utilise putData avec les bytes
-        if (_selectedImagePath == null) return null;
+        if (_selectedImagePath == null) throw Exception('Aucune image sélectionnée');
         final XFile pickedFile = XFile(_selectedImagePath!);
         final bytes = await pickedFile.readAsBytes();
         await ref.putData(bytes);
       } else {
-        // Sur mobile, on utilise putFile
-        if (_imageFile == null) return null;
+        if (_imageFile == null) throw Exception('Aucune image sélectionnée');
         await ref.putFile(_imageFile!);
       }
-      return await ref.getDownloadURL();
+
+      final downloadUrl = await ref.getDownloadURL();
+      print('Image uploadée avec succès : $downloadUrl'); // LOG
+      return downloadUrl;
     } catch (e) {
-      if (mounted) {
-        setState(() => _errorMessage = 'Erreur upload image: $e');
-      }
-      return null;
+      print('Erreur lors de l\'upload : $e'); // LOG
+      rethrow; // On relance pour que l'appelant puisse gérer
     }
   }
 
@@ -128,9 +127,20 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
       if (user == null) throw Exception('Utilisateur non connecté');
 
       String? imageUrl;
-      // Vérifier si une nouvelle image a été sélectionnée
-      if ((kIsWeb && _selectedImagePath != null) || (!kIsWeb && _imageFile != null)) {
-        imageUrl = await _uploadImage(user.uid);
+      final hasNewImage = (kIsWeb && _selectedImagePath != null) || (!kIsWeb && _imageFile != null);
+
+      if (hasNewImage) {
+        try {
+          imageUrl = await _uploadImage(user.uid);
+        } catch (e) {
+          if (mounted) {
+            setState(() {
+              _errorMessage = 'Échec de l\'upload de l\'image : $e';
+              _isLoading = false;
+            });
+          }
+          return; // On arrête la mise à jour
+        }
       }
 
       final updatedUser = user.copyWith(
@@ -203,7 +213,7 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
       final user = authProvider.currentUser;
       if (user == null) throw Exception('Utilisateur non connecté');
 
-      // 1. Supprimer l'image de profil si elle existe
+      // Supprimer l'image de profil si elle existe
       if (user.profileImageUrl != null) {
         try {
           final ref = FirebaseStorage.instance.refFromURL(user.profileImageUrl!);
@@ -213,10 +223,7 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
         }
       }
 
-      // 2. Supprimer les données Firestore
       await _userService.deleteUser(user.uid);
-
-      // 3. Supprimer le compte Firebase Auth
       await authProvider.deleteAccount();
 
       if (mounted) {
@@ -239,13 +246,10 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
     // Déterminer l'image à afficher
     ImageProvider? imageProvider;
     if (_selectedImagePath != null) {
-      // Web : URL blob
       imageProvider = NetworkImage(_selectedImagePath!);
     } else if (_imageFile != null) {
-      // Mobile : fichier local
       imageProvider = FileImage(_imageFile!);
     } else if (user.profileImageUrl != null) {
-      // Image existante sur Firebase
       imageProvider = NetworkImage(user.profileImageUrl!);
     }
 
