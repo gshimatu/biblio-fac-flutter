@@ -71,7 +71,7 @@ class _ManageLoansViewState extends State<ManageLoansView> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString());
+      setState(() => _error = _friendlyError(e));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -140,9 +140,20 @@ class _ManageLoansViewState extends State<ManageLoansView> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Action impossible: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Action impossible: ${_friendlyError(e)}'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
+  }
+
+  String _friendlyError(Object error) {
+    final message = error.toString();
+    if (message.contains('permission-denied') || message.contains('PERMISSION_DENIED')) {
+      return 'Acces Firestore refuse. Autorisez les droits admin dans les regles.';
+    }
+    return message;
   }
 
   String _statusLabel(LoanStatus status) {
@@ -207,6 +218,7 @@ class _ManageLoansViewState extends State<ManageLoansView> {
                     SizedBox(
                       width: 180,
                       child: DropdownButtonFormField<String>(
+                        isExpanded: true,
                         value: _statusFilter,
                         decoration: const InputDecoration(
                           labelText: 'Statut',
@@ -228,6 +240,7 @@ class _ManageLoansViewState extends State<ManageLoansView> {
                     SizedBox(
                       width: 200,
                       child: DropdownButtonFormField<_LoanSortOption>(
+                        isExpanded: true,
                         value: _sortOption,
                         decoration: const InputDecoration(
                           labelText: 'Trier',

@@ -72,7 +72,7 @@ class _ManageReservationsViewState extends State<ManageReservationsView> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString());
+      setState(() => _error = _friendlyError(e));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -131,9 +131,20 @@ class _ManageReservationsViewState extends State<ManageReservationsView> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Action impossible: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text('Action impossible: ${_friendlyError(e)}'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
+  }
+
+  String _friendlyError(Object error) {
+    final message = error.toString();
+    if (message.contains('permission-denied') || message.contains('PERMISSION_DENIED')) {
+      return 'Acces Firestore refuse. Autorisez les droits admin dans les regles.';
+    }
+    return message;
   }
 
   String _statusLabel(ReservationStatus status) {
@@ -194,6 +205,7 @@ class _ManageReservationsViewState extends State<ManageReservationsView> {
                     SizedBox(
                       width: 180,
                       child: DropdownButtonFormField<String>(
+                        isExpanded: true,
                         value: _statusFilter,
                         decoration: const InputDecoration(
                           labelText: 'Statut',
@@ -214,6 +226,7 @@ class _ManageReservationsViewState extends State<ManageReservationsView> {
                     SizedBox(
                       width: 180,
                       child: DropdownButtonFormField<_ReservationSortOption>(
+                        isExpanded: true,
                         value: _sortOption,
                         decoration: const InputDecoration(
                           labelText: 'Trier',

@@ -53,7 +53,7 @@ class _ManageUsersViewState extends State<ManageUsersView> {
       setState(() => _users = users);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString());
+      setState(() => _error = _friendlyError(e));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -246,6 +246,14 @@ class _ManageUsersViewState extends State<ManageUsersView> {
     );
   }
 
+  String _friendlyError(Object error) {
+    final message = error.toString();
+    if (message.contains('permission-denied') || message.contains('PERMISSION_DENIED')) {
+      return 'Acces Firestore refuse. Autorisez les droits admin dans les regles.';
+    }
+    return message;
+  }
+
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/'
         '${date.month.toString().padLeft(2, '0')}/${date.year}';
@@ -286,6 +294,7 @@ class _ManageUsersViewState extends State<ManageUsersView> {
                     SizedBox(
                       width: 160,
                       child: DropdownButtonFormField<String>(
+                        isExpanded: true,
                         value: _roleFilter,
                         decoration: const InputDecoration(
                           labelText: 'Role',
@@ -305,6 +314,7 @@ class _ManageUsersViewState extends State<ManageUsersView> {
                     SizedBox(
                       width: 160,
                       child: DropdownButtonFormField<String>(
+                        isExpanded: true,
                         value: _statusFilter,
                         decoration: const InputDecoration(
                           labelText: 'Statut',
@@ -324,6 +334,7 @@ class _ManageUsersViewState extends State<ManageUsersView> {
                     SizedBox(
                       width: 220,
                       child: DropdownButtonFormField<_UserSortOption>(
+                        isExpanded: true,
                         value: _sortOption,
                         decoration: const InputDecoration(
                           labelText: 'Trier',

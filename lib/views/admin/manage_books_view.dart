@@ -321,6 +321,7 @@ class _ManageBooksViewState extends State<ManageBooksView> {
                     SizedBox(
                       width: 190,
                       child: DropdownButtonFormField<String>(
+                        isExpanded: true,
                         value: _categoryFilter,
                         decoration: const InputDecoration(
                           labelText: 'Categorie',
@@ -338,6 +339,7 @@ class _ManageBooksViewState extends State<ManageBooksView> {
                     SizedBox(
                       width: 220,
                       child: DropdownButtonFormField<_BookSortOption>(
+                        isExpanded: true,
                         value: _sortOption,
                         decoration: const InputDecoration(
                           labelText: 'Trier par',
@@ -362,11 +364,11 @@ class _ManageBooksViewState extends State<ManageBooksView> {
                           ),
                           DropdownMenuItem(
                             value: _BookSortOption.availableAsc,
-                            child: Text('Disponibles croissant'),
+                            child: Text('Dispo +'),
                           ),
                           DropdownMenuItem(
                             value: _BookSortOption.availableDesc,
-                            child: Text('Disponibles decroissant'),
+                            child: Text('Dispo -'),
                           ),
                         ],
                         onChanged: (value) {
