@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class ManageBooksView extends StatelessWidget {
-  const ManageBooksView({super.key});
+class ManageLoansView extends StatelessWidget {
+  const ManageLoansView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -13,13 +13,13 @@ class ManageBooksView extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.library_books,
+              Icons.assignment,
               size: 80,
               color: const Color(0xFF272662).withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
-              'Gestion des Livres',
+              'Gestion des Emprunts',
               style: GoogleFonts.sora(
                 color: const Color(0xFF272662),
                 fontSize: 24,
@@ -29,7 +29,7 @@ class ManageBooksView extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Fonctionnalité à venir :\n'
-              'Ajout, modification et suppression de livres.',
+              'Validation, prolongation et suivi des emprunts.',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 color: const Color(0xFF5A5F7A),
