@@ -32,19 +32,38 @@ class BookDetailsView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Couverture factice
             Center(
-              child: Container(
-                height: 200,
-                width: 150,
-                decoration: BoxDecoration(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  height: 200,
+                  width: 150,
                   color: const Color(0xFFE0E0E6),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.book,
-                  size: 60,
-                  color: Color(0xFF5A5F7A),
+                  child: (book.coverUrl != null && book.coverUrl!.isNotEmpty)
+                      ? Image.network(
+                          book.coverUrl!,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) return child;
+                            return const Center(
+                              child: SizedBox(
+                                width: 26,
+                                height: 26,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            );
+                          },
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.book,
+                            size: 60,
+                            color: Color(0xFF5A5F7A),
+                          ),
+                        )
+                      : const Icon(
+                          Icons.book,
+                          size: 60,
+                          color: Color(0xFF5A5F7A),
+                        ),
                 ),
               ),
             ),
