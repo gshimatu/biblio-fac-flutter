@@ -36,6 +36,20 @@ class UserService {
     });
   }
 
+  /// Activer un compte
+  Future<void> activateUser(String uid) async {
+    await _firestore.collection(_collection).doc(uid).update({
+      'isActive': true,
+    });
+  }
+
+  /// Mettre à jour le rôle
+  Future<void> updateUserRole(String uid, UserRole role) async {
+    await _firestore.collection(_collection).doc(uid).update({
+      'role': role.name,
+    });
+  }
+
   /// Supprimer un utilisateur
   Future<void> deleteUser(String uid) async {
     await _firestore.collection(_collection).doc(uid).delete();

@@ -1,38 +1,45 @@
 import 'package:flutter/material.dart';
 import '../models/book_model.dart';
+import '../services/book_service.dart';
 
 class BookProvider extends ChangeNotifier {
+  final BookService _bookService = BookService();
+
   List<BookModel> _books = [];
   bool _isLoading = false;
+  String? _error;
 
   List<BookModel> get books => _books;
   bool get isLoading => _isLoading;
+  String? get error => _error;
 
   Future<void> loadBooks() async {
-    // Simuler un chargement
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
-    // Données factices
-    await Future.delayed(const Duration(milliseconds: 500));
-    _books = [
-      BookModel(
-        id: '1',
-        title: 'Clean Code',
-        author: 'Robert C. Martin',
-        isbn: '9780132350884',
-        description: 'Un guide pour écrire du code propre et maintenable.',
-        category: 'Informatique',
-        totalCopies: 5,
-        availableCopies: 3,
-        publishedDate: '2008',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      ),
-      // ... autres livres factices
-    ];
+    try {
+      _books = await _bookService.getAllBooks();
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
-    _isLoading = false;
-    notifyListeners();
+  Future<void> addBook(BookModel book) async {
+    await _bookService.addBook(book);
+    await loadBooks();
+  }
+
+  Future<void> updateBook(BookModel book) async {
+    await _bookService.updateBook(book);
+    await loadBooks();
+  }
+
+  Future<void> deleteBook(String id) async {
+    await _bookService.deleteBook(id);
+    await loadBooks();
   }
 }

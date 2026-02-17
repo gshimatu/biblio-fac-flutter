@@ -198,7 +198,11 @@ class AdminDashboardView extends StatelessWidget {
     final bookProvider = Provider.of<BookProvider>(context);
     final loanProvider = Provider.of<LoanProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.currentUser!;
+    final user = authProvider.currentUser;
+
+    if (user == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
     final isCompactPhone = MediaQuery.of(context).size.width < 420;
 
     final totalBooks = bookProvider.books.length;

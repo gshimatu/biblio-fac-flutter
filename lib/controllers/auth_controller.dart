@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 import '../services/firebase_auth_service.dart';
@@ -8,7 +7,6 @@ class AuthController {
   final FirebaseAuthService _authService = FirebaseAuthService();
   final UserService _userService = UserService();
 
-  /// Inscription complète avec création Firestore
   Future<void> registerStudent({
     required String fullName,
     required String email,
@@ -26,7 +24,7 @@ class AuthController {
 
     final firebaseUser = credential.user;
     if (firebaseUser == null) {
-      throw Exception("Erreur lors de la création du compte.");
+      throw Exception('Erreur lors de la creation du compte.');
     }
 
     final userModel = UserModel(
@@ -48,7 +46,6 @@ class AuthController {
     await _userService.createUser(userModel);
   }
 
-  /// Connexion utilisateur (paramètres nommés)
   Future<UserModel?> login({
     required String email,
     required String password,
@@ -60,12 +57,17 @@ class AuthController {
 
     final firebaseUser = credential.user;
     if (firebaseUser == null) {
-      throw Exception("Utilisateur introuvable.");
+      throw Exception('Utilisateur introuvable.');
     }
 
     final user = await _userService.getUserById(firebaseUser.uid);
     if (user == null) {
-      throw Exception("Données utilisateur non trouvées.");
+      throw Exception('Donnees utilisateur non trouvees.');
+    }
+
+    if (!user.isActive) {
+      await _authService.logout();
+      throw Exception('Ce compte est desactive. Contactez un administrateur.');
     }
 
     await _userService.updateLastLogin(firebaseUser.uid);
@@ -80,7 +82,9 @@ class AuthController {
 
   Future<void> deleteUser() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw Exception('Aucun utilisateur connecté');
+    if (user == null) {
+      throw Exception('Aucun utilisateur connecte');
+    }
     await user.delete();
   }
 }
