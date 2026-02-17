@@ -11,6 +11,8 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.currentUser;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isCompactPhone = screenWidth < 390;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -102,7 +104,7 @@ class HomePage extends StatelessWidget {
                 delegate: SliverChildListDelegate([
                   // Hero section
                   Container(
-                    height: 380,
+                    constraints: const BoxConstraints(minHeight: 380),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(32),
                       gradient: const LinearGradient(
@@ -132,7 +134,7 @@ class HomePage extends StatelessWidget {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.all(32),
+                          padding: EdgeInsets.all(isCompactPhone ? 24 : 32),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -151,7 +153,7 @@ class HomePage extends StatelessWidget {
                                 'Biblio Fac',
                                 style: GoogleFonts.sora(
                                   color: Colors.white,
-                                  fontSize: 42,
+                                  fontSize: isCompactPhone ? 36 : 42,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: -1,
                                 ),
@@ -162,11 +164,11 @@ class HomePage extends StatelessWidget {
                                 'accessible en un clic.',
                                 style: GoogleFonts.poppins(
                                   color: Colors.white,
-                                  fontSize: 18,
+                                  fontSize: isCompactPhone ? 16 : 18,
                                   height: 1.4,
                                 ),
                               ),
-                              const SizedBox(height: 32),
+                              SizedBox(height: isCompactPhone ? 24 : 32),
                               Wrap(
                                 spacing: 16,
                                 runSpacing: 16,
@@ -179,13 +181,13 @@ class HomePage extends StatelessWidget {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.white,
                                       foregroundColor: const Color(0xFF272662),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 28,
-                                        vertical: 16,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: isCompactPhone ? 20 : 28,
+                                        vertical: isCompactPhone ? 14 : 16,
                                       ),
                                       textStyle: GoogleFonts.poppins(
                                         fontWeight: FontWeight.w600,
-                                        fontSize: 16,
+                                        fontSize: isCompactPhone ? 15 : 16,
                                       ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(30),
@@ -204,13 +206,13 @@ class HomePage extends StatelessWidget {
                                         color: Colors.white,
                                         width: 2,
                                       ),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 24,
-                                        vertical: 16,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: isCompactPhone ? 18 : 24,
+                                        vertical: isCompactPhone ? 14 : 16,
                                       ),
                                       textStyle: GoogleFonts.poppins(
                                         fontWeight: FontWeight.w600,
-                                        fontSize: 16,
+                                        fontSize: isCompactPhone ? 15 : 16,
                                       ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(30),
@@ -248,13 +250,15 @@ class HomePage extends StatelessWidget {
                   const SizedBox(height: 32),
 
                   // Grille de fonctionnalités
-                  GridView.count(
+                  GridView(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 20,
-                    crossAxisSpacing: 20,
-                    childAspectRatio: 1.2,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 20,
+                      crossAxisSpacing: 20,
+                      mainAxisExtent: isCompactPhone ? 220 : 210,
+                    ),
                     children: const [
                       _FeatureCard(
                         icon: Icons.menu_book_rounded,
@@ -387,8 +391,10 @@ class _FeatureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isCompactPhone = MediaQuery.of(context).size.width < 390;
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isCompactPhone ? 16 : 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -404,28 +410,30 @@ class _FeatureCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(isCompactPhone ? 8 : 10),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: color, size: 28),
+            child: Icon(icon, color: color, size: isCompactPhone ? 24 : 28),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isCompactPhone ? 12 : 16),
           Text(
             title,
             style: GoogleFonts.sora(
               color: const Color(0xFF101535),
               fontWeight: FontWeight.w700,
-              fontSize: 16,
+              fontSize: isCompactPhone ? 15 : 16,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 8),
           Text(
             description,
             style: GoogleFonts.poppins(
               color: const Color(0xFF5A5F7A),
-              fontSize: 13,
+              fontSize: isCompactPhone ? 12 : 13,
               height: 1.4,
             ),
             maxLines: 2,

@@ -199,6 +199,7 @@ class AdminDashboardView extends StatelessWidget {
     final loanProvider = Provider.of<LoanProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.currentUser!;
+    final isCompactPhone = MediaQuery.of(context).size.width < 420;
 
     final totalBooks = bookProvider.books.length;
     final availableBooks = bookProvider.books.where((book) => book.availableCopies > 0).length;
@@ -314,13 +315,15 @@ class AdminDashboardView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          GridView.count(
+          GridView(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.5,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              mainAxisExtent: isCompactPhone ? 140 : 132,
+            ),
             children: [
               _buildActionCard(
                 context,
@@ -507,6 +510,8 @@ class AdminDashboardView extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 2),
             Text(
@@ -514,7 +519,10 @@ class AdminDashboardView extends StatelessWidget {
               style: GoogleFonts.poppins(
                 color: const Color(0xFF5A5F7A),
                 fontSize: 12,
+                height: 1.3,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
