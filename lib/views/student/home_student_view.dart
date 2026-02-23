@@ -171,6 +171,12 @@ class _HomeStudentViewState extends State<HomeStudentView> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.person, color: Color(0xFF272662)),
+            onPressed: () {
+              Navigator.of(context).pushNamed('/profile');
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.logout, color: Color(0xFF272662)),
             onPressed: () async {
               await auth.logout();
