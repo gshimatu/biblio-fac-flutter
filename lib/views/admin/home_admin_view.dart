@@ -60,7 +60,7 @@ class _HomeAdminViewState extends State<HomeAdminView> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.currentUser;
 
     if (user == null) {
@@ -84,41 +84,26 @@ class _HomeAdminViewState extends State<HomeAdminView> {
           ),
         ),
         actions: [
-          if (user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty)
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ProfileAdminDetailsView()),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: CircleAvatar(
-                  radius: 18,
-                  backgroundColor: const Color(0xFFE9ECF8),
-                  child: ClipOval(
-                    child: Image.network(
-                      user.profileImageUrl!,
-                      width: 36,
-                      height: 36,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) {
-                        return const Icon(Icons.person, color: Color(0xFF272662));
-                      },
-                    ),
-                  ),
-                ),
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ProfileAdminDetailsView()),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: const Color(0xFFE9ECF8),
+                backgroundImage: (user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty)
+                    ? NetworkImage(user.profileImageUrl!)
+                    : null,
+                child: (user.profileImageUrl == null || user.profileImageUrl!.isEmpty)
+                    ? const Icon(Icons.person, color: Color(0xFF272662))
+                    : null,
               ),
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.person, color: Color(0xFF272662)),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ProfileAdminDetailsView()),
-                );
-              },
             ),
+          ),
           IconButton(
             icon: const Icon(Icons.logout, color: Color(0xFF272662)),
             onPressed: () async {
