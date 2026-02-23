@@ -24,13 +24,11 @@ class _HomeAdminViewState extends State<HomeAdminView> {
 
   late final List<Widget> _pages;
 
-  static final GlobalKey<_HomeAdminViewState> _homeAdminKey = GlobalKey();
-
   @override
   void initState() {
     super.initState();
     _pages = [
-      AdminDashboardView(key: _homeAdminKey),
+      AdminDashboardView(onNavigateToTab: _onItemTapped),
       const ManageBooksView(),
       const ManageUsersView(),
       const ManageLoansView(),
@@ -174,9 +172,9 @@ class _HomeAdminViewState extends State<HomeAdminView> {
 
 // Widget pour le tableau de bord avec accès au parent via GlobalKey
 class AdminDashboardView extends StatelessWidget {
-  final GlobalKey<_HomeAdminViewState>? homeAdminKey;
+  final ValueChanged<int> onNavigateToTab;
 
-  const AdminDashboardView({super.key, this.homeAdminKey});
+  const AdminDashboardView({super.key, required this.onNavigateToTab});
 
   @override
   Widget build(BuildContext context) {
@@ -321,7 +319,7 @@ class AdminDashboardView extends StatelessWidget {
                 icon: Icons.library_add,
                 color: const Color(0xFF272662),
                 onTap: () {
-                  homeAdminKey?.currentState?._onItemTapped(1);
+                  onNavigateToTab(1);
                 },
               ),
               _buildActionCard(
@@ -331,7 +329,7 @@ class AdminDashboardView extends StatelessWidget {
                 icon: Icons.people,
                 color: const Color(0xFF1D9E6C),
                 onTap: () {
-                  homeAdminKey?.currentState?._onItemTapped(2);
+                  onNavigateToTab(2);
                 },
               ),
               _buildActionCard(
@@ -341,7 +339,7 @@ class AdminDashboardView extends StatelessWidget {
                 icon: Icons.assignment_turned_in,
                 color: const Color(0xFFFFA726),
                 onTap: () {
-                  homeAdminKey?.currentState?._onItemTapped(3);
+                  onNavigateToTab(3);
                 },
               ),
               _buildActionCard(
@@ -351,7 +349,7 @@ class AdminDashboardView extends StatelessWidget {
                 icon: Icons.bookmark,
                 color: const Color(0xFFEF5350),
                 onTap: () {
-                  homeAdminKey?.currentState?._onItemTapped(4);
+                  onNavigateToTab(4);
                 },
               ),
             ],
@@ -401,7 +399,7 @@ class AdminDashboardView extends StatelessWidget {
                   ),
                   TextButton(
                     onPressed: () {
-                      homeAdminKey?.currentState?._onItemTapped(3);
+                      onNavigateToTab(3);
                     },
                     child: Text(
                       'Voir tout',
