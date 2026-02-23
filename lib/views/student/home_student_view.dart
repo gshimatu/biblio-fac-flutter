@@ -170,12 +170,37 @@ class _HomeStudentViewState extends State<HomeStudentView> {
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person, color: Color(0xFF272662)),
-            onPressed: () {
-              Navigator.of(context).pushNamed('/profile');
-            },
-          ),
+          if (user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).pushNamed('/profile');
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: const Color(0xFFE9ECF8),
+                  child: ClipOval(
+                    child: Image.network(
+                      user.profileImageUrl!,
+                      width: 36,
+                      height: 36,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) {
+                        return const Icon(Icons.person, color: Color(0xFF272662));
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.person, color: Color(0xFF272662)),
+              onPressed: () {
+                Navigator.of(context).pushNamed('/profile');
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.logout, color: Color(0xFF272662)),
             onPressed: () async {
