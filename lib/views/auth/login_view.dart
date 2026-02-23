@@ -47,7 +47,7 @@ class _LoginViewState extends State<LoginView> {
       if (!mounted) return;
 
       if (user == null) {
-        setState(() => _errorMessage = 'Erreur inattendue : utilisateur non trouvé');
+        setState(() => _errorMessage = 'Erreur inattendue : utilisateur non trouve');
         return;
       }
 
@@ -55,7 +55,6 @@ class _LoginViewState extends State<LoginView> {
         SnackBar(content: Text('Bienvenue, ${user.fullName}!')),
       );
 
-      // Redirection selon le rôle
       final route = user.role == UserRole.admin ? '/admin' : '/student';
       Navigator.of(context).pushReplacementNamed(route);
     } catch (e) {
@@ -100,170 +99,277 @@ class _LoginViewState extends State<LoginView> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Text(
-                'Connexion',
-                style: GoogleFonts.sora(
-                  color: const Color(0xFF272662),
-                  fontSize: 32,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -1,
+        child: Stack(
+          children: [
+            Container(
+              height: 230,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF272662), Color(0xFF39409A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Connectez-vous à votre compte Biblio Fac',
-                style: GoogleFonts.poppins(
-                  color: const Color(0xFF5A5F7A),
-                  fontSize: 16,
+            ),
+            Positioned(
+              top: -45,
+              right: -30,
+              child: Container(
+                width: 160,
+                height: 160,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
                 ),
               ),
-              const SizedBox(height: 48),
-
-              // Message d'erreur
-              if (_errorMessage != null)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+            ),
+            Positioned(
+              top: 88,
+              left: -35,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 26, 20, 28),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(99),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.shield_rounded, color: Colors.white, size: 15),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Espace securise',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Text(
-                    _errorMessage!,
+                  const SizedBox(height: 16),
+                  Text(
+                    'Connexion',
+                    style: GoogleFonts.sora(
+                      color: Colors.white,
+                      fontSize: 34,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Connectez-vous a votre compte Biblio Fac',
                     style: GoogleFonts.poppins(
-                      color: Colors.red[700],
+                      color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 14,
                     ),
                   ),
-                ),
-              if (_errorMessage != null) const SizedBox(height: 24),
-
-              // Email field
-              Text(
-                'Adresse e-mail',
-                style: GoogleFonts.poppins(
-                  color: const Color(0xFF272662),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  hintText: 'tamundelb@gmail.com',
-                  hintStyle: GoogleFonts.poppins(color: const Color(0xFF5A5F7A)),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE0E0E6)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE0E0E6)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF272662), width: 2),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Password field
-              Text(
-                'Mot de passe',
-                style: GoogleFonts.poppins(
-                  color: const Color(0xFF272662),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  hintText: '••••••••',
-                  hintStyle: GoogleFonts.poppins(color: const Color(0xFF5A5F7A)),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE0E0E6)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE0E0E6)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF272662), width: 2),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Login button
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: FilledButton(
-                  onPressed: _isLoading ? null : _handleLogin,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF272662),
-                    disabledBackgroundColor: const Color(0xFF272662).withValues(alpha: 0.5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(18, 22, 18, 18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 34,
+                              height: 34,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF272662).withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(Icons.person_rounded, color: Color(0xFF272662)),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              'Renseignez vos identifiants',
+                              style: GoogleFonts.poppins(
+                                color: const Color(0xFF272662),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        if (_errorMessage != null)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.red.withValues(alpha: 0.22)),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(Icons.error_outline_rounded, color: Colors.red[700], size: 18),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _errorMessage!,
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.red[700],
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        Text(
+                          'Adresse e-mail',
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF272662),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _emailController,
+                          decoration: InputDecoration(
+                            hintText: 'tamundelb@gmail.com',
+                            hintStyle: GoogleFonts.poppins(color: const Color(0xFF5A5F7A)),
+                            prefixIcon: const Icon(Icons.mail_outline_rounded, color: Color(0xFF5A5F7A)),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(color: Color(0xFFE0E0E6)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(color: Color(0xFFE0E0E6)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(color: Color(0xFF272662), width: 2),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        Text(
+                          'Mot de passe',
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF272662),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          decoration: InputDecoration(
+                            hintText: '********',
+                            hintStyle: GoogleFonts.poppins(color: const Color(0xFF5A5F7A)),
+                            prefixIcon: const Icon(Icons.lock_outline_rounded, color: Color(0xFF5A5F7A)),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(color: Color(0xFFE0E0E6)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(color: Color(0xFFE0E0E6)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: const BorderSide(color: Color(0xFF272662), width: 2),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: FilledButton.icon(
+                            onPressed: _isLoading ? null : _handleLogin,
+                            icon: _isLoading
+                                ? const SizedBox.shrink()
+                                : const Icon(Icons.login_rounded, size: 18),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF272662),
+                              disabledBackgroundColor: const Color(0xFF272662).withValues(alpha: 0.5),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            label: _isLoading
+                                ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    ),
+                                  )
+                                : Text(
+                                    'Se connecter',
+                                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 16),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        Center(
+                          child: RichText(
+                            text: TextSpan(
+                              text: 'Vous n\'avez pas de compte ? ',
+                              style: GoogleFonts.poppins(color: const Color(0xFF5A5F7A), fontSize: 14),
+                              children: [
+                                TextSpan(
+                                  text: 'Inscrivez-vous',
+                                  style: GoogleFonts.poppins(
+                                    color: const Color(0xFF1D9E6C),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      Navigator.of(context).pushReplacementNamed('/register');
+                                    },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Text(
-                          'Se connecter',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 16),
-                        ),
-                ),
+                ],
               ),
-              const SizedBox(height: 24),
-
-              // Register link (route nommée)
-              Center(
-                child: RichText(
-                  text: TextSpan(
-                    text: 'Vous n\'avez pas de compte ? ',
-                    style: GoogleFonts.poppins(color: const Color(0xFF5A5F7A), fontSize: 14),
-                    children: [
-                      TextSpan(
-                        text: 'Inscrivez-vous',
-                        style: GoogleFonts.poppins(
-                          color: const Color(0xFF1D9E6C),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            Navigator.of(context).pushReplacementNamed('/register');
-                          },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
