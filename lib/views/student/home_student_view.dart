@@ -186,7 +186,7 @@ class _HomeStudentViewState extends State<HomeStudentView> {
                       width: 36,
                       height: 36,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) {
+                      errorBuilder: (context, error, stackTrace) {
                         return const Icon(Icons.person, color: Color(0xFF272662));
                       },
                     ),
@@ -417,56 +417,177 @@ class _HomeStudentViewState extends State<HomeStudentView> {
   }
 
   Widget _statsTab(List<BookModel> books, List<LoanModel> loans) {
-    final pending = loans.where((l) => l.status == LoanStatus.pending).length.toDouble();
-    final approved = loans.where((l) => l.status == LoanStatus.approved).length.toDouble();
-    final returned = loans.where((l) => l.status == LoanStatus.returned).length.toDouble();
-    final activeRes = _reservations.where((r) => r.status == ReservationStatus.active).length.toDouble();
-    final values = [pending, approved, returned, activeRes];
-    final max = values.fold<double>(1, (a, b) => a > b ? a : b);
+    final pending = loans.where((l) => l.status == LoanStatus.pending).length;
+    final approved = loans.where((l) => l.status == LoanStatus.approved).length;
+    final returned = loans.where((l) => l.status == LoanStatus.returned).length;
+    final activeRes = _reservations.where((r) => r.status == ReservationStatus.active).length;
+    final totalLoans = loans.length;
+    final completionRate = totalLoans == 0 ? 0 : ((returned / totalLoans) * 100).round();
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = (screenWidth - 48) / 2;
 
-    Widget bar(String label, double value) {
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Row(
-          children: [
-            SizedBox(width: 110, child: Text(label, style: GoogleFonts.poppins(fontSize: 12))),
-            Expanded(
-              child: LinearProgressIndicator(
-                value: value / max,
-                minHeight: 12,
-                backgroundColor: const Color(0xFFE8ECF4),
-                valueColor: const AlwaysStoppedAnimation(Color(0xFF272662)),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text('${value.toInt()}'),
-          ],
-        ),
-      );
-    }
+    final stats = [
+      ('Demandes', pending, const Color(0xFF4C52A3)),
+      ('Approuves', approved, const Color(0xFF1D9E6C)),
+      ('Retournes', returned, const Color(0xFF2E86DE)),
+      ('Res. actives', activeRes, const Color(0xFF9B59B6)),
+    ];
+    final max = stats.fold<int>(1, (m, e) => e.$2 > m ? e.$2 : m).toDouble();
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF272662), Color(0xFF4C52A3)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.insights, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Vue globale',
+                      style: GoogleFonts.sora(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Taux de retour: $completionRate%',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
         Wrap(
           spacing: 10,
           runSpacing: 10,
           children: [
-            _smallMetric('Livres', '${books.length}'),
-            _smallMetric('Reservations', '${_reservations.length}'),
-            _smallMetric('Emprunts', '${loans.length}'),
+            _smallMetric(
+              title: 'Livres',
+              value: '${books.length}',
+              icon: Icons.menu_book_rounded,
+              color: const Color(0xFF272662),
+              width: cardWidth,
+            ),
+            _smallMetric(
+              title: 'Reservations',
+              value: '${_reservations.length}',
+              icon: Icons.bookmark_added_rounded,
+              color: const Color(0xFF9B59B6),
+              width: cardWidth,
+            ),
+            _smallMetric(
+              title: 'Emprunts',
+              value: '$totalLoans',
+              icon: Icons.assignment_turned_in_rounded,
+              color: const Color(0xFF1D9E6C),
+              width: cardWidth,
+            ),
+            _smallMetric(
+              title: 'En cours',
+              value: '$approved',
+              icon: Icons.schedule_rounded,
+              color: const Color(0xFFFFA726),
+              width: cardWidth,
+            ),
           ],
         ),
         const SizedBox(height: 16),
         Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              bar('Demandes', pending),
-              bar('Approuves', approved),
-              bar('Retournes', returned),
-              bar('Res. actives', activeRes),
+              Text(
+                'Repartition',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF272662),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...stats.map((s) {
+                final ratio = s.$2 == 0 ? 0.0 : s.$2 / max;
+                final percent = max == 0 ? 0 : ((s.$2 / max) * 100).round();
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              s.$1,
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF3D425E),
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${s.$2} ($percent%)',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: const Color(0xFF5A5F7A),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(99),
+                        child: LinearProgressIndicator(
+                          value: ratio,
+                          minHeight: 10,
+                          backgroundColor: const Color(0xFFE9ECF4),
+                          valueColor: AlwaysStoppedAnimation<Color>(s.$3),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
             ],
           ),
         ),
@@ -506,7 +627,11 @@ class _HomeStudentViewState extends State<HomeStudentView> {
                     color: const Color(0xFFE0E0E6),
                     width: double.infinity,
                     child: (book.coverUrl != null && book.coverUrl!.isNotEmpty)
-                        ? Image.network(book.coverUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.book))
+                        ? Image.network(
+                            book.coverUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => const Icon(Icons.book),
+                          )
                         : const Icon(Icons.book),
                   ),
                 ),
@@ -540,16 +665,57 @@ class _HomeStudentViewState extends State<HomeStudentView> {
     );
   }
 
-  Widget _smallMetric(String title, String value) {
+  Widget _smallMetric({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+    required double width,
+  }) {
     return Container(
-      width: 110,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+      width: width,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(value, style: GoogleFonts.sora(fontWeight: FontWeight.w700, fontSize: 18)),
-          Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 11)),
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: Icon(icon, size: 18, color: color),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: GoogleFonts.sora(
+              fontWeight: FontWeight.w700,
+              fontSize: 20,
+              color: const Color(0xFF272662),
+            ),
+          ),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: const Color(0xFF5A5F7A),
+            ),
+          ),
         ],
       ),
     );
