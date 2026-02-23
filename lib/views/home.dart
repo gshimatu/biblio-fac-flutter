@@ -287,79 +287,98 @@ class HomePage extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 48),
-
-                  // Section espace administrateur
+                  // Section parcours
                   Container(
-                    padding: const EdgeInsets.all(32),
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF0F4FF),
-                      borderRadius: BorderRadius.circular(28),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFF0F4FF), Color(0xFFEFFAF5)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: const Color(0xFF272662).withValues(alpha: 0.1),
+                        color: const Color(0xFF272662).withValues(alpha: 0.08),
                       ),
                     ),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Espace bibliothécaire',
-                                style: GoogleFonts.sora(
-                                  color: const Color(0xFF272662),
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Gérez le catalogue, validez les emprunts '
-                                'et supervisez l’activité de la bibliothèque.',
-                                style: GoogleFonts.poppins(
-                                  color: const Color(0xFF3E425B),
-                                  fontSize: 15,
-                                  height: 1.5,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              FilledButton.icon(
-                                onPressed: () {},
-                                icon: const Icon(
-                                  Icons.admin_panel_settings_rounded,
-                                ),
-                                label: const Text('Accéder à l’administration'),
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: const Color(0xFF272662),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                    vertical: 14,
-                                  ),
-                                  textStyle: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                ),
-                              ),
-                            ],
+                        Text(
+                          'Comment ca marche ?',
+                          style: GoogleFonts.sora(
+                            color: const Color(0xFF272662),
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                        const SizedBox(width: 24),
-                        Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF272662).withValues(alpha: 0.05),
-                            shape: BoxShape.circle,
+                        const SizedBox(height: 16),
+                        const _QuickInfoCard(
+                          icon: Icons.search_rounded,
+                          title: '1. Recherchez',
+                          description: 'Trouvez un livre par titre, auteur ou categorie.',
+                          color: Color(0xFF272662),
+                        ),
+                        const SizedBox(height: 10),
+                        const _QuickInfoCard(
+                          icon: Icons.bookmark_add_rounded,
+                          title: '2. Reservez',
+                          description: 'Placez rapidement une reservation depuis votre dashboard.',
+                          color: Color(0xFF1D9E6C),
+                        ),
+                        const SizedBox(height: 10),
+                        const _QuickInfoCard(
+                          icon: Icons.assignment_turned_in_rounded,
+                          title: '3. Empruntez',
+                          description: 'Suivez vos demandes et vos retours en temps reel.',
+                          color: Color(0xFF272662),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x0C1F2A44),
+                          blurRadius: 12,
+                          offset: Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Pourquoi Biblio Fac ?',
+                          style: GoogleFonts.sora(
+                            color: const Color(0xFF101535),
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
                           ),
-                          child: const Icon(
-                            Icons.admin_panel_settings_rounded,
-                            size: 60,
-                            color: Color(0xFF272662),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Une experience simple pour gagner du temps au quotidien.',
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF5A5F7A),
+                            fontSize: 14,
                           ),
+                        ),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: const [
+                            _BenefitChip(icon: Icons.bolt_rounded, label: 'Rapide'),
+                            _BenefitChip(icon: Icons.devices_rounded, label: 'Multi-plateforme'),
+                            _BenefitChip(icon: Icons.lock_rounded, label: 'Securise'),
+                            _BenefitChip(icon: Icons.auto_graph_rounded, label: 'Suivi clair'),
+                          ],
                         ),
                       ],
                     ),
@@ -444,3 +463,102 @@ class _FeatureCard extends StatelessWidget {
     );
   }
 }
+
+class _QuickInfoCard extends StatelessWidget {
+  const _QuickInfoCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.color,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFF101535),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  description,
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFF5A5F7A),
+                    fontSize: 13,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BenefitChip extends StatelessWidget {
+  const _BenefitChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4F6FC),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: const Color(0xFF272662)),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              color: const Color(0xFF272662),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
