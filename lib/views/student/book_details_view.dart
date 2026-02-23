@@ -1,21 +1,95 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../models/book_model.dart';
+import '../../models/loan_model.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/loan_provider.dart';
+import '../../services/loan_service.dart';
 
-class BookDetailsView extends StatelessWidget {
+class BookDetailsView extends StatefulWidget {
   final BookModel book;
 
   const BookDetailsView({super.key, required this.book});
 
   @override
+  State<BookDetailsView> createState() => _BookDetailsViewState();
+}
+
+class _BookDetailsViewState extends State<BookDetailsView> {
+  final LoanService _loanService = LoanService();
+  bool _submitting = false;
+
+  Future<void> _requestLoan() async {
+    if (_submitting) return;
+
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final loansProvider = Provider.of<LoanProvider>(context, listen: false);
+    final user = auth.currentUser;
+
+    if (user == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Session invalide. Reconnectez-vous.')),
+      );
+      return;
+    }
+
+    setState(() => _submitting = true);
+    try {
+      await loansProvider.loadUserLoans();
+      final exists = loansProvider.loans.any(
+        (l) =>
+            l.bookId == widget.book.id &&
+            (l.status == LoanStatus.pending || l.status == LoanStatus.approved),
+      );
+
+      if (exists) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Demande deja existante pour ce livre.')),
+        );
+        return;
+      }
+
+      await _loanService.createLoan(
+        LoanModel(
+          id: '',
+          userId: user.uid,
+          bookId: widget.book.id,
+          loanDate: DateTime.now(),
+          dueDate: DateTime.now().add(const Duration(days: 14)),
+          returnDate: null,
+          status: LoanStatus.pending,
+        ),
+      );
+      await loansProvider.loadUserLoans();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Demande d\'emprunt envoyee.')),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erreur lors de la demande d\'emprunt.')),
+      );
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final book = widget.book;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
-          'Détails du livre',
+          'Details du livre',
           style: GoogleFonts.sora(
             color: const Color(0xFF272662),
             fontWeight: FontWeight.w800,
@@ -53,7 +127,7 @@ class BookDetailsView extends StatelessWidget {
                               ),
                             );
                           },
-                          errorBuilder: (_, __, ___) => const Icon(
+                          errorBuilder: (context, error, stackTrace) => const Icon(
                             Icons.book,
                             size: 60,
                             color: Color(0xFF5A5F7A),
@@ -86,13 +160,10 @@ class BookDetailsView extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _buildDetailRow('ISBN', book.isbn),
-            _buildDetailRow('Catégorie', book.category),
+            _buildDetailRow('Categorie', book.category),
             _buildDetailRow('Date de publication', book.publishedDate),
             _buildDetailRow('Copies totales', book.totalCopies.toString()),
-            _buildDetailRow(
-              'Copies disponibles',
-              book.availableCopies.toString(),
-            ),
+            _buildDetailRow('Copies disponibles', book.availableCopies.toString()),
             const SizedBox(height: 24),
             Text(
               'Description',
@@ -114,18 +185,11 @@ class BookDetailsView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-            // Bouton factice
             SizedBox(
               width: double.infinity,
               height: 54,
               child: FilledButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Fonctionnalité d\'emprunt à venir'),
-                    ),
-                  );
-                },
+                onPressed: _submitting ? null : _requestLoan,
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFF272662),
                   shape: RoundedRectangleBorder(
@@ -133,7 +197,7 @@ class BookDetailsView extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  'Demander un emprunt',
+                  _submitting ? 'Envoi en cours...' : 'Demander un emprunt',
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
