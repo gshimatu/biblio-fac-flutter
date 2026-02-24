@@ -82,6 +82,21 @@ class AuthController {
     return recoveredUser.copyWith(lastLogin: DateTime.now());
   }
 
+  Future<UserModel?> restoreSession() async {
+    final firebaseUser = currentFirebaseUser;
+    if (firebaseUser == null) return null;
+
+    final existingUser = await _userService.getUserById(firebaseUser.uid);
+    if (existingUser != null) {
+      await _userService.updateLastLogin(firebaseUser.uid);
+      return existingUser.copyWith(lastLogin: DateTime.now());
+    }
+
+    final recoveredUser = await _createDefaultStudentProfile(firebaseUser);
+    await _userService.updateLastLogin(firebaseUser.uid);
+    return recoveredUser.copyWith(lastLogin: DateTime.now());
+  }
+
   Future<UserModel> loginWithGoogle() async {
     final credential = await _authService.signInWithGoogle();
     final firebaseUser = credential.user;
