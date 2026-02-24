@@ -346,7 +346,11 @@ class _LoginViewState extends State<LoginView> {
                           height: 54,
                           child: OutlinedButton.icon(
                             onPressed: null,
-                            icon: const Icon(Icons.g_mobiledata_rounded, size: 24),
+                            icon: Image.asset(
+                              'assets/images/Google_Logo.png',
+                              width: 22,
+                              height: 22,
+                            ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: const Color(0xFF272662),
                               disabledForegroundColor: const Color(0xFF272662),
