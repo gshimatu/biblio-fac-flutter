@@ -70,7 +70,9 @@ class _RegisterViewState extends State<RegisterView> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Inscription reussie ! Connectez-vous.'),
+            content: Text(
+              'Inscription reussie. Votre compte est en attente d\'activation par la bibliotheque.',
+            ),
           ),
         );
         Navigator.of(context).pushReplacementNamed('/login');

@@ -90,9 +90,10 @@ class _LoginViewState extends State<LoginView> {
   }
 
   void _onLoginSuccess(UserModel user) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Bienvenue, ${user.fullName}!')),
-    );
+    final message = user.isActive
+        ? 'Bienvenue, ${user.fullName}!'
+        : 'Bienvenue, ${user.fullName}. Votre compte est en attente d\'activation.';
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 
     final route = user.role == UserRole.admin ? '/admin' : '/student';
     Navigator.of(context).pushReplacementNamed(route);

@@ -66,6 +66,7 @@ class _HomeStudentViewState extends State<HomeStudentView> {
   Future<void> _reserve(BookModel book) async {
     final user = Provider.of<AuthProvider>(context, listen: false).currentUser;
     if (user == null) return;
+    if (!_canUseLibraryFeatures(user)) return;
     final exists = _reservations.any(
       (r) => r.bookId == book.id && r.status == ReservationStatus.active,
     );
@@ -90,6 +91,7 @@ class _HomeStudentViewState extends State<HomeStudentView> {
     final user = Provider.of<AuthProvider>(context, listen: false).currentUser;
     final loanProvider = Provider.of<LoanProvider>(context, listen: false);
     if (user == null) return;
+    if (!_canUseLibraryFeatures(user)) return;
     final exists = loanProvider.loans.any(
       (l) =>
           l.bookId == book.id &&
@@ -115,6 +117,10 @@ class _HomeStudentViewState extends State<HomeStudentView> {
   }
 
   Future<void> _cancelReservation(ReservationModel reservation) async {
+    final user = Provider.of<AuthProvider>(context, listen: false).currentUser;
+    if (user == null) return;
+    if (!_canUseLibraryFeatures(user)) return;
+
     await _reservationService.cancelReservation(reservation.id);
     await _reload();
     _snack('Reservation annulee.');
@@ -123,6 +129,48 @@ class _HomeStudentViewState extends State<HomeStudentView> {
   void _snack(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  bool _canUseLibraryFeatures(UserModel user) {
+    if (user.isActive) return true;
+    _snack(
+      'Compte non active. Presentez votre preuve de paiement a la bibliotheque pour activation.',
+    );
+    return false;
+  }
+
+  Widget _buildInactiveAccountBanner() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 1),
+            child: Icon(Icons.warning_amber_rounded, color: Colors.orange),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Votre compte n\'est pas encore active. Veuillez presenter une preuve '
+              'de paiement des frais de bibliotheque a l\'administrateur pour activation.',
+              style: GoogleFonts.poppins(
+                color: const Color(0xFF8A4B00),
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   List<String> _missingRequiredProfileFields(UserModel user) {
@@ -166,6 +214,7 @@ class _HomeStudentViewState extends State<HomeStudentView> {
     final loans = loanProvider.loans;
     final missingFields = _missingRequiredProfileFields(user);
     final categories = <String>{'Toutes', ...books.map((b) => b.category)}.toList()..sort();
+    final isInactive = !user.isActive;
     if (!categories.contains(_selectedCategory)) _selectedCategory = 'Toutes';
 
     return Scaffold(
@@ -256,7 +305,17 @@ class _HomeStudentViewState extends State<HomeStudentView> {
           ),
         ],
       ),
-      body: RefreshIndicator(onRefresh: _reload, child: _body(books, loans, categories)),
+      body: Column(
+        children: [
+          if (isInactive) _buildInactiveAccountBanner(),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _reload,
+              child: _body(books, loans, categories),
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _tab,

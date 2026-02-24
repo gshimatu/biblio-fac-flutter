@@ -40,10 +40,21 @@ class AuthController {
       role: UserRole.student,
       createdAt: DateTime.now(),
       lastLogin: DateTime.now(),
-      isActive: true,
+      isActive: false,
     );
 
-    await _userService.createUser(userModel);
+    try {
+      await _userService.createUser(userModel);
+    } catch (e) {
+      await _deleteFirebaseUserSafely(firebaseUser);
+      await _authService.logout();
+      throw Exception(
+        'Compte Auth cree mais profil impossible a enregistrer dans Firestore. '
+        'Veuillez verifier les regles Firestore puis reessayer. Details: $e',
+      );
+    }
+
+    await _authService.logout();
   }
 
   Future<UserModel?> login({
@@ -61,17 +72,14 @@ class AuthController {
     }
 
     final user = await _userService.getUserById(firebaseUser.uid);
-    if (user == null) {
-      throw Exception('Donnees utilisateur non trouvees.');
+    if (user != null) {
+      await _userService.updateLastLogin(firebaseUser.uid);
+      return user.copyWith(lastLogin: DateTime.now());
     }
 
-    if (!user.isActive) {
-      await _authService.logout();
-      throw Exception('Ce compte est desactive. Contactez un administrateur.');
-    }
-
+    final recoveredUser = await _createDefaultStudentProfile(firebaseUser);
     await _userService.updateLastLogin(firebaseUser.uid);
-    return user;
+    return recoveredUser.copyWith(lastLogin: DateTime.now());
   }
 
   Future<UserModel> loginWithGoogle() async {
@@ -90,11 +98,6 @@ class AuthController {
 
     final existingUser = await _userService.getUserById(firebaseUser.uid);
     if (existingUser != null) {
-      if (!existingUser.isActive) {
-        await _authService.logout();
-        throw Exception('Ce compte est desactive. Contactez un administrateur.');
-      }
-
       await _userService.updateLastLogin(firebaseUser.uid);
       return existingUser.copyWith(lastLogin: DateTime.now());
     }
@@ -113,15 +116,19 @@ class AuthController {
       role: UserRole.student,
       createdAt: now,
       lastLogin: now,
-      isActive: true,
+      isActive: false,
     );
 
     try {
       await _userService.createUser(userModel);
       return userModel;
-    } catch (_) {
+    } catch (e) {
+      await _deleteFirebaseUserSafely(firebaseUser);
       await _authService.logout();
-      rethrow;
+      throw Exception(
+        'Compte Google cree dans Auth mais profil Firestore non enregistre. '
+        'Veuillez verifier les regles Firestore puis reessayer. Details: $e',
+      );
     }
   }
 
@@ -150,5 +157,40 @@ class AuthController {
       return 'Etudiant';
     }
     return localPart;
+  }
+
+  Future<UserModel> _createDefaultStudentProfile(User firebaseUser) async {
+    final email = firebaseUser.email;
+    if (email == null || email.trim().isEmpty) {
+      throw Exception('Impossible de creer le profil utilisateur: email introuvable.');
+    }
+
+    final now = DateTime.now();
+    final userModel = UserModel(
+      uid: firebaseUser.uid,
+      fullName: _resolveDisplayName(firebaseUser.displayName, email),
+      email: email,
+      matricule: null,
+      faculty: null,
+      promotion: null,
+      phoneNumber: null,
+      address: null,
+      profileImageUrl: firebaseUser.photoURL,
+      role: UserRole.student,
+      createdAt: now,
+      lastLogin: now,
+      isActive: false,
+    );
+
+    await _userService.createUser(userModel);
+    return userModel;
+  }
+
+  Future<void> _deleteFirebaseUserSafely(User firebaseUser) async {
+    try {
+      await firebaseUser.delete();
+    } catch (_) {
+      // Best effort cleanup to avoid leaving orphan auth accounts.
+    }
   }
 }
