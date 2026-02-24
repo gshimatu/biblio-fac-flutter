@@ -33,6 +33,19 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> loginWithGoogle() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _currentUser = await _authController.loginWithGoogle();
+      notifyListeners();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   void setUser(UserModel user) {
     _currentUser = user;
     notifyListeners();

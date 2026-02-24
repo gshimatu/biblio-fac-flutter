@@ -51,12 +51,7 @@ class _LoginViewState extends State<LoginView> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Bienvenue, ${user.fullName}!')),
-      );
-
-      final route = user.role == UserRole.admin ? '/admin' : '/student';
-      Navigator.of(context).pushReplacementNamed(route);
+      _onLoginSuccess(user);
     } catch (e) {
       if (mounted) {
         setState(() => _errorMessage = e.toString());
@@ -64,6 +59,43 @@ class _LoginViewState extends State<LoginView> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _handleGoogleLogin() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      await authProvider.loginWithGoogle();
+
+      final user = authProvider.currentUser;
+      if (!mounted) return;
+
+      if (user == null) {
+        setState(() => _errorMessage = 'Erreur inattendue : utilisateur non trouve');
+        return;
+      }
+
+      _onLoginSuccess(user);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _errorMessage = e.toString());
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _onLoginSuccess(UserModel user) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Bienvenue, ${user.fullName}!')),
+    );
+
+    final route = user.role == UserRole.admin ? '/admin' : '/student';
+    Navigator.of(context).pushReplacementNamed(route);
   }
 
   @override
@@ -345,7 +377,7 @@ class _LoginViewState extends State<LoginView> {
                           width: double.infinity,
                           height: 54,
                           child: OutlinedButton.icon(
-                            onPressed: null,
+                            onPressed: _isLoading ? null : _handleGoogleLogin,
                             icon: Image.asset(
                               'assets/images/Google_Logo.png',
                               width: 22,

@@ -74,6 +74,57 @@ class AuthController {
     return user;
   }
 
+  Future<UserModel> loginWithGoogle() async {
+    final credential = await _authService.signInWithGoogle();
+    final firebaseUser = credential.user;
+
+    if (firebaseUser == null) {
+      throw Exception('Utilisateur Google introuvable.');
+    }
+
+    final email = firebaseUser.email;
+    if (email == null || email.isEmpty) {
+      await _authService.logout();
+      throw Exception('Le compte Google ne fournit pas d\'adresse e-mail.');
+    }
+
+    final existingUser = await _userService.getUserById(firebaseUser.uid);
+    if (existingUser != null) {
+      if (!existingUser.isActive) {
+        await _authService.logout();
+        throw Exception('Ce compte est desactive. Contactez un administrateur.');
+      }
+
+      await _userService.updateLastLogin(firebaseUser.uid);
+      return existingUser.copyWith(lastLogin: DateTime.now());
+    }
+
+    final now = DateTime.now();
+    final userModel = UserModel(
+      uid: firebaseUser.uid,
+      fullName: _resolveDisplayName(firebaseUser.displayName, email),
+      email: email,
+      matricule: null,
+      faculty: null,
+      promotion: null,
+      phoneNumber: null,
+      address: null,
+      profileImageUrl: firebaseUser.photoURL,
+      role: UserRole.student,
+      createdAt: now,
+      lastLogin: now,
+      isActive: true,
+    );
+
+    try {
+      await _userService.createUser(userModel);
+      return userModel;
+    } catch (_) {
+      await _authService.logout();
+      rethrow;
+    }
+  }
+
   Future<void> logout() async {
     await _authService.logout();
   }
@@ -86,5 +137,18 @@ class AuthController {
       throw Exception('Aucun utilisateur connecte');
     }
     await user.delete();
+  }
+
+  String _resolveDisplayName(String? displayName, String email) {
+    final trimmed = displayName?.trim();
+    if (trimmed != null && trimmed.isNotEmpty) {
+      return trimmed;
+    }
+
+    final localPart = email.split('@').first;
+    if (localPart.isEmpty) {
+      return 'Etudiant';
+    }
+    return localPart;
   }
 }
