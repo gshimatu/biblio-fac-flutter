@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/user_service.dart';
 
@@ -36,6 +35,18 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
   final ImagePicker _picker = ImagePicker();
   final UserService _userService = UserService();
 
+  List<String> _missingRequiredFields() {
+    final missing = <String>[];
+    if (_fullNameController.text.trim().isEmpty) missing.add('Nom complet');
+    if (_emailController.text.trim().isEmpty) missing.add('Email');
+    if (_phoneController.text.trim().isEmpty) missing.add('Telephone');
+    if (_addressController.text.trim().isEmpty) missing.add('Adresse');
+    if (_facultyController.text.trim().isEmpty) missing.add('Faculte');
+    if (_promotionController.text.trim().isEmpty) missing.add('Promotion');
+    if (_matriculeController.text.trim().isEmpty) missing.add('Matricule');
+    return missing;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -48,15 +59,42 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
       _facultyController = TextEditingController(text: user.faculty ?? '');
       _promotionController = TextEditingController(text: user.promotion ?? '');
       _matriculeController = TextEditingController(text: user.matricule ?? '');
+
+      _fullNameController.addListener(_refreshMissingIndicators);
+      _phoneController.addListener(_refreshMissingIndicators);
+      _addressController.addListener(_refreshMissingIndicators);
+      _facultyController.addListener(_refreshMissingIndicators);
+      _promotionController.addListener(_refreshMissingIndicators);
+      _matriculeController.addListener(_refreshMissingIndicators);
     } else {
+      _fullNameController = TextEditingController();
+      _emailController = TextEditingController();
+      _phoneController = TextEditingController();
+      _addressController = TextEditingController();
+      _facultyController = TextEditingController();
+      _promotionController = TextEditingController();
+      _matriculeController = TextEditingController();
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(context).pushReplacementNamed('/login');
       });
     }
   }
 
+  void _refreshMissingIndicators() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
   @override
   void dispose() {
+    _fullNameController.removeListener(_refreshMissingIndicators);
+    _phoneController.removeListener(_refreshMissingIndicators);
+    _addressController.removeListener(_refreshMissingIndicators);
+    _facultyController.removeListener(_refreshMissingIndicators);
+    _promotionController.removeListener(_refreshMissingIndicators);
+    _matriculeController.removeListener(_refreshMissingIndicators);
+
     _fullNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
@@ -242,6 +280,7 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context).currentUser;
     if (user == null) return const SizedBox.shrink();
+    final missingFields = _missingRequiredFields();
 
     // Déterminer l'image à afficher
     ImageProvider? imageProvider;
@@ -275,6 +314,7 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: Column(
             children: [
               // Photo de profil
@@ -308,6 +348,64 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
                 ),
               ),
               const SizedBox(height: 32),
+
+              if (missingFields.isNotEmpty)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.orange.withValues(alpha: 0.35)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Profil incomplet: ${missingFields.length} champ(s) obligatoire(s) manquant(s)',
+                              style: GoogleFonts.poppins(
+                                color: const Color(0xFF8A4B00),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: missingFields
+                            .map(
+                              (field) => Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(color: Colors.orange.withValues(alpha: 0.5)),
+                                ),
+                                child: Text(
+                                  field,
+                                  style: GoogleFonts.poppins(
+                                    color: const Color(0xFF8A4B00),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ],
+                  ),
+                ),
 
               // Champs du formulaire
               _buildField('Nom complet', _fullNameController, 'Votre nom', Icons.person),
@@ -390,14 +488,19 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
   }
 
   Widget _buildField(String label, TextEditingController controller, String hint,
-      IconData icon, {bool enabled = true}) {
+      IconData icon, {bool enabled = true, bool requiredField = true}) {
+    final isMissing = requiredField && controller.text.trim().isEmpty;
+
     return TextFormField(
       controller: controller,
       enabled: enabled,
       decoration: InputDecoration(
-        labelText: label,
+        labelText: requiredField ? '$label *' : label,
         hintText: hint,
         prefixIcon: Icon(icon, color: const Color(0xFF5A5F7A)),
+        suffixIcon: isMissing
+            ? const Icon(Icons.error_outline_rounded, color: Colors.redAccent)
+            : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFFE0E0E6)),
@@ -416,8 +519,9 @@ class _ProfileDetailsViewState extends State<ProfileDetailsView> {
         ),
       ),
       validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Ce champ est requis';
+        if (!requiredField) return null;
+        if (value == null || value.trim().isEmpty) {
+          return 'Champ requis';
         }
         return null;
       },

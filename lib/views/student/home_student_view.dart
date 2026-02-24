@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/book_model.dart';
 import '../../models/loan_model.dart';
 import '../../models/reservation_model.dart';
+import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../providers/loan_provider.dart';
@@ -124,6 +125,18 @@ class _HomeStudentViewState extends State<HomeStudentView> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  List<String> _missingRequiredProfileFields(UserModel user) {
+    final missing = <String>[];
+    if (user.fullName.trim().isEmpty) missing.add('Nom complet');
+    if (user.email.trim().isEmpty) missing.add('Email');
+    if ((user.phoneNumber ?? '').trim().isEmpty) missing.add('Telephone');
+    if ((user.address ?? '').trim().isEmpty) missing.add('Adresse');
+    if ((user.faculty ?? '').trim().isEmpty) missing.add('Faculte');
+    if ((user.promotion ?? '').trim().isEmpty) missing.add('Promotion');
+    if ((user.matricule ?? '').trim().isEmpty) missing.add('Matricule');
+    return missing;
+  }
+
   String _title() {
     const titles = [
       'Dashboard Etudiant',
@@ -151,6 +164,7 @@ class _HomeStudentViewState extends State<HomeStudentView> {
 
     final books = booksProvider.books;
     final loans = loanProvider.loans;
+    final missingFields = _missingRequiredProfileFields(user);
     final categories = <String>{'Toutes', ...books.map((b) => b.category)}.toList()..sort();
     if (!categories.contains(_selectedCategory)) _selectedCategory = 'Toutes';
 
@@ -170,6 +184,38 @@ class _HomeStudentViewState extends State<HomeStudentView> {
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
+          if (missingFields.isNotEmpty)
+            IconButton(
+              tooltip: 'Profil incomplet: ${missingFields.length} champ(s) manquant(s)',
+              onPressed: () {
+                Navigator.of(context).pushNamed('/profile');
+              },
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                  Positioned(
+                    right: -6,
+                    top: -6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${missingFields.length}',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           if (user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty)
             GestureDetector(
               onTap: () {
