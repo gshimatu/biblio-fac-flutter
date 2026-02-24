@@ -340,6 +340,30 @@ class _LoginViewState extends State<LoginView> {
                                   ),
                           ),
                         ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: OutlinedButton.icon(
+                            onPressed: null,
+                            icon: const Icon(Icons.g_mobiledata_rounded, size: 24),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF272662),
+                              disabledForegroundColor: const Color(0xFF272662),
+                              side: const BorderSide(color: Color(0xFFD7DBE8)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            label: Text(
+                              'Continuer avec Google',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 18),
                         Center(
                           child: RichText(
