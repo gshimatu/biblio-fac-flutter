@@ -16,10 +16,15 @@ class SessionGateView extends StatefulWidget {
 class _SessionGateViewState extends State<SessionGateView> {
   late final Future<void> _bootstrapFuture;
 
+  void _log(String message) {
+    debugPrint('[SessionGate] $message');
+  }
+
   @override
   void initState() {
     super.initState();
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    _log('initState: bootstrapping restoreSession');
     _bootstrapFuture = Future.microtask(() {
       return authProvider.restoreSession();
     });
@@ -32,13 +37,18 @@ class _SessionGateViewState extends State<SessionGateView> {
       builder: (context, snapshot) {
         final authProvider = Provider.of<AuthProvider>(context);
         if (!authProvider.isInitialized || authProvider.isLoading) {
+          _log('build: loading session state');
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
         final user = authProvider.currentUser;
-        if (user == null) return const HomePage();
+        if (user == null) {
+          _log('build: no session -> HomePage');
+          return const HomePage();
+        }
+        _log('build: session found uid=${user.uid} role=${user.role.name}');
         return user.role == UserRole.admin
             ? const HomeAdminView()
             : const HomeStudentView();
