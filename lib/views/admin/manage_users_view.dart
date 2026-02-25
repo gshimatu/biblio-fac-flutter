@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -20,6 +22,7 @@ class _ManageUsersViewState extends State<ManageUsersView> {
 
   bool _isLoading = true;
   String? _error;
+  StreamSubscription<List<UserModel>>? _usersSubscription;
   List<UserModel> _users = [];
 
   String _search = '';
@@ -33,24 +36,41 @@ class _ManageUsersViewState extends State<ManageUsersView> {
     _searchController.addListener(() {
       setState(() => _search = _searchController.text.trim().toLowerCase());
     });
-    _loadUsers();
+    _initRealtimeUsers();
   }
 
   @override
   void dispose() {
+    _usersSubscription?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadUsers() async {
+  Future<void> _initRealtimeUsers() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
+
     try {
-      final users = await _userService.getAllUsers();
-      if (!mounted) return;
-      setState(() => _users = users);
+      await _usersSubscription?.cancel();
+      _usersSubscription = _userService.streamAllUsers().listen(
+        (users) {
+          if (!mounted) return;
+          setState(() {
+            _users = users;
+            _isLoading = false;
+            _error = null;
+          });
+        },
+        onError: (error) {
+          if (!mounted) return;
+          setState(() {
+            _isLoading = false;
+            _error = _friendlyError(error);
+          });
+        },
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = _friendlyError(e));
@@ -102,7 +122,6 @@ class _ManageUsersViewState extends State<ManageUsersView> {
       } else {
         await _userService.activateUser(user.uid);
       }
-      await _loadUsers();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -120,7 +139,6 @@ class _ManageUsersViewState extends State<ManageUsersView> {
     if (user.role == UserRole.admin) return;
     try {
       await _userService.updateUserRole(user.uid, UserRole.admin);
-      await _loadUsers();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Utilisateur promu admin.')),
@@ -134,7 +152,6 @@ class _ManageUsersViewState extends State<ManageUsersView> {
     if (user.role != UserRole.admin) return;
     try {
       await _userService.updateUserRole(user.uid, UserRole.student);
-      await _loadUsers();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Role admin retire.')),
@@ -173,7 +190,6 @@ class _ManageUsersViewState extends State<ManageUsersView> {
 
     try {
       await _userService.deleteUser(user.uid);
-      await _loadUsers();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Compte admin supprime.')),
@@ -295,7 +311,7 @@ class _ManageUsersViewState extends State<ManageUsersView> {
                       width: 160,
                       child: DropdownButtonFormField<String>(
                         isExpanded: true,
-                        value: _roleFilter,
+                        initialValue: _roleFilter,
                         decoration: const InputDecoration(
                           labelText: 'Role',
                           border: OutlineInputBorder(),
@@ -315,7 +331,7 @@ class _ManageUsersViewState extends State<ManageUsersView> {
                       width: 160,
                       child: DropdownButtonFormField<String>(
                         isExpanded: true,
-                        value: _statusFilter,
+                        initialValue: _statusFilter,
                         decoration: const InputDecoration(
                           labelText: 'Statut',
                           border: OutlineInputBorder(),
@@ -335,7 +351,7 @@ class _ManageUsersViewState extends State<ManageUsersView> {
                       width: 220,
                       child: DropdownButtonFormField<_UserSortOption>(
                         isExpanded: true,
-                        value: _sortOption,
+                        initialValue: _sortOption,
                         decoration: const InputDecoration(
                           labelText: 'Trier',
                           border: OutlineInputBorder(),
@@ -391,7 +407,7 @@ class _ManageUsersViewState extends State<ManageUsersView> {
                         ),
                       )
                     : RefreshIndicator(
-                        onRefresh: _loadUsers,
+                        onRefresh: _initRealtimeUsers,
                         child: users.isEmpty
                             ? ListView(
                                 children: [
@@ -416,7 +432,7 @@ class _ManageUsersViewState extends State<ManageUsersView> {
                             : ListView.separated(
                                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
                                 itemCount: users.length,
-                                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                                separatorBuilder: (_, _) => const SizedBox(height: 10),
                                 itemBuilder: (context, index) {
                                   final user = users[index];
                                   final isAdmin = user.role == UserRole.admin;

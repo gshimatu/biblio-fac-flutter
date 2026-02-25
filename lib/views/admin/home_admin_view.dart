@@ -45,7 +45,10 @@ class _HomeAdminViewState extends State<HomeAdminView> {
   Future<void> _loadData() async {
     final bookProvider = Provider.of<BookProvider>(context, listen: false);
     final loanProvider = Provider.of<LoanProvider>(context, listen: false);
-    await Future.wait([bookProvider.loadBooks(), loanProvider.startAllLoansRealtime()]);
+    await Future.wait([
+      bookProvider.startBooksRealtime(),
+      loanProvider.startAllLoansRealtime(),
+    ]);
   }
 
   void _onItemTapped(int index) {

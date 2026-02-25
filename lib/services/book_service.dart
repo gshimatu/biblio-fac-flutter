@@ -10,7 +10,7 @@ class BookService {
     await _firestore.collection(_collection).add(book.toMap());
   }
 
-  /// Récupérer tous les livres
+  /// Recuperer tous les livres
   Future<List<BookModel>> getAllBooks() async {
     final snapshot = await _firestore.collection(_collection).get();
     return snapshot.docs
@@ -18,14 +18,23 @@ class BookService {
         .toList();
   }
 
-  /// Récupérer un livre par ID
+  /// Flux temps reel du catalogue de livres
+  Stream<List<BookModel>> streamAllBooks() {
+    return _firestore.collection(_collection).snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => BookModel.fromMap(doc.data(), doc.id))
+          .toList();
+    });
+  }
+
+  /// Recuperer un livre par ID
   Future<BookModel?> getBookById(String id) async {
     final doc = await _firestore.collection(_collection).doc(id).get();
     if (!doc.exists) return null;
     return BookModel.fromMap(doc.data()!, doc.id);
   }
 
-  /// Mettre à jour un livre
+  /// Mettre a jour un livre
   Future<void> updateBook(BookModel book) async {
     await _firestore.collection(_collection).doc(book.id).update(book.toMap());
   }

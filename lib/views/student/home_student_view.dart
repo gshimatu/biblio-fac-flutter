@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +28,7 @@ class _HomeStudentViewState extends State<HomeStudentView> {
   int _tab = 0;
   bool _loaded = false;
   bool _loadingReservations = false;
+  StreamSubscription<List<ReservationModel>>? _reservationsSubscription;
   List<ReservationModel> _reservations = [];
 
   String _searchDashboard = '';
@@ -36,6 +39,12 @@ class _HomeStudentViewState extends State<HomeStudentView> {
   String _selectedCategory = 'Toutes';
   String _loanStatus = 'Tous';
   String _reservationStatus = 'Tous';
+
+  @override
+  void dispose() {
+    _reservationsSubscription?.cancel();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -55,15 +64,30 @@ class _HomeStudentViewState extends State<HomeStudentView> {
     final loans = Provider.of<LoanProvider>(context, listen: false);
     setState(() => _loadingReservations = true);
     await Future.wait([
-      books.loadBooks(),
+      books.startBooksRealtime(),
       loans.startUserLoansRealtime(userId: user.uid),
     ]);
-    try {
-      final reservations = await _reservationService.getReservationsByUser(user.uid);
-      if (mounted) setState(() => _reservations = reservations);
-    } finally {
-      if (mounted) setState(() => _loadingReservations = false);
-    }
+    await _startReservationsRealtime(user.uid);
+  }
+
+  Future<void> _startReservationsRealtime(String userId) async {
+    await _reservationsSubscription?.cancel();
+    _reservationsSubscription = _reservationService
+        .streamReservationsByUser(userId)
+        .listen(
+      (reservations) {
+        if (!mounted) return;
+        setState(() {
+          _reservations = reservations;
+          _loadingReservations = false;
+        });
+      },
+      onError: (error) {
+        if (!mounted) return;
+        _snack('Erreur reservations temps reel: $error');
+        setState(() => _loadingReservations = false);
+      },
+    );
   }
 
   Future<void> _reserve(BookModel book) async {
@@ -86,7 +110,6 @@ class _HomeStudentViewState extends State<HomeStudentView> {
         status: ReservationStatus.active,
       ),
     );
-    await _reload();
     _snack('Reservation creee.');
   }
 
@@ -125,7 +148,6 @@ class _HomeStudentViewState extends State<HomeStudentView> {
     if (!_canUseLibraryFeatures(user)) return;
 
     await _reservationService.cancelReservation(reservation.id);
-    await _reload();
     _snack('Reservation annulee.');
   }
 

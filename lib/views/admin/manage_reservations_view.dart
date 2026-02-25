@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/book_model.dart';
@@ -25,6 +27,7 @@ class _ManageReservationsViewState extends State<ManageReservationsView> {
 
   bool _isLoading = true;
   String? _error;
+  StreamSubscription<List<ReservationModel>>? _reservationsSubscription;
   List<ReservationModel> _reservations = [];
   Map<String, BookModel> _booksById = {};
   Map<String, UserModel> _usersById = {};
@@ -39,37 +42,54 @@ class _ManageReservationsViewState extends State<ManageReservationsView> {
     _searchController.addListener(() {
       setState(() => _search = _searchController.text.trim().toLowerCase());
     });
-    _loadData();
+    _initializeRealtime();
   }
 
   @override
   void dispose() {
+    _reservationsSubscription?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadData() async {
+  Future<void> _initializeRealtime() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
     try {
       final results = await Future.wait([
-        _reservationService.getAllReservations(),
         _bookService.getAllBooks(),
         _userService.getAllUsers(),
       ]);
 
-      final reservations = results[0] as List<ReservationModel>;
-      final books = results[1] as List<BookModel>;
-      final users = results[2] as List<UserModel>;
+      final books = results[0] as List<BookModel>;
+      final users = results[1] as List<UserModel>;
 
       if (!mounted) return;
       setState(() {
-        _reservations = reservations;
         _booksById = {for (final b in books) b.id: b};
         _usersById = {for (final u in users) u.uid: u};
       });
+
+      await _reservationsSubscription?.cancel();
+      _reservationsSubscription = _reservationService.streamAllReservations().listen(
+        (reservations) {
+          if (!mounted) return;
+          setState(() {
+            _reservations = reservations;
+            _isLoading = false;
+            _error = null;
+          });
+        },
+        onError: (error) {
+          if (!mounted) return;
+          setState(() {
+            _isLoading = false;
+            _error = _friendlyError(error);
+          });
+        },
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = _friendlyError(e));
@@ -125,7 +145,6 @@ class _ManageReservationsViewState extends State<ManageReservationsView> {
   }) async {
     try {
       await action();
-      await _loadData();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success)));
     } catch (e) {
@@ -206,7 +225,7 @@ class _ManageReservationsViewState extends State<ManageReservationsView> {
                       width: 180,
                       child: DropdownButtonFormField<String>(
                         isExpanded: true,
-                        value: _statusFilter,
+                        initialValue: _statusFilter,
                         decoration: const InputDecoration(
                           labelText: 'Statut',
                           border: OutlineInputBorder(),
@@ -227,7 +246,7 @@ class _ManageReservationsViewState extends State<ManageReservationsView> {
                       width: 180,
                       child: DropdownButtonFormField<_ReservationSortOption>(
                         isExpanded: true,
-                        value: _sortOption,
+                        initialValue: _sortOption,
                         decoration: const InputDecoration(
                           labelText: 'Trier',
                           border: OutlineInputBorder(),
@@ -264,7 +283,7 @@ class _ManageReservationsViewState extends State<ManageReservationsView> {
                         ),
                       )
                     : RefreshIndicator(
-                        onRefresh: _loadData,
+                        onRefresh: _initializeRealtime,
                         child: reservations.isEmpty
                             ? ListView(
                                 children: [
@@ -289,7 +308,7 @@ class _ManageReservationsViewState extends State<ManageReservationsView> {
                             : ListView.separated(
                                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
                                 itemCount: reservations.length,
-                                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                                separatorBuilder: (_, _) => const SizedBox(height: 10),
                                 itemBuilder: (context, index) {
                                   final reservation = reservations[index];
                                   final user = _usersById[reservation.userId];

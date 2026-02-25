@@ -1,11 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../models/book_model.dart';
 import '../models/google_book_model.dart';
 import '../controllers/book_controller.dart';
+import '../services/book_service.dart';
 import '../services/google_books_service.dart';
 
 class BookProvider extends ChangeNotifier {
   final BookController _bookController = BookController();
+  final BookService _bookService = BookService();
+  StreamSubscription<List<BookModel>>? _booksSubscription;
 
   List<BookModel> _books = [];
   List<GoogleBookModel> _externalBooks = [];
@@ -22,6 +27,7 @@ class BookProvider extends ChangeNotifier {
   String? get externalError => _externalError;
 
   Future<void> loadBooks() async {
+    await _booksSubscription?.cancel();
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -49,6 +55,32 @@ class BookProvider extends ChangeNotifier {
   Future<void> deleteBook(String id) async {
     await _bookController.deleteBook(id);
     await loadBooks();
+  }
+
+  Future<void> startBooksRealtime() async {
+    await _booksSubscription?.cancel();
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    _booksSubscription = _bookService.streamAllBooks().listen(
+      (books) {
+        _books = books;
+        _isLoading = false;
+        _error = null;
+        notifyListeners();
+      },
+      onError: (e) {
+        _isLoading = false;
+        _error = e.toString();
+        notifyListeners();
+      },
+    );
+  }
+
+  Future<void> stopBooksRealtime() async {
+    await _booksSubscription?.cancel();
+    _booksSubscription = null;
   }
 
   Future<void> searchExternalBooks({
@@ -83,5 +115,11 @@ class BookProvider extends ChangeNotifier {
   Future<void> importExternalBook(BookModel book) async {
     await _bookController.importGoogleBookToCatalog(book);
     await loadBooks();
+  }
+
+  @override
+  void dispose() {
+    _booksSubscription?.cancel();
+    super.dispose();
   }
 }
