@@ -26,8 +26,8 @@ Application Flutter de gestion de bibliotheque universitaire (etudiants + admini
 ## Presentation
 
 `Biblio Fac` digitalise la gestion d'une bibliotheque universitaire:
-- cote etudiant: consultation catalogue, reservations, demandes d'emprunt, suivi personnel
-- cote admin: gestion complete des livres, utilisateurs, emprunts et reservations
+- compte etudiant: consultation catalogue, reservations, demandes d'emprunt, suivi personnel
+- compte admin: gestion complete des livres, utilisateurs, emprunts et reservations
 
 Le projet suit une architecture `MVC + Provider`, avec des synchronisations en temps reel sur les operations critiques.
 
