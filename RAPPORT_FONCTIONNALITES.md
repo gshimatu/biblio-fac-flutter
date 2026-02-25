@@ -172,7 +172,7 @@ Ces points ne sont pas explicitement imposes dans le cahier, ou sont implementes
 
 Sur le perimetre fonctionnel principal du cahier des charges, la couverture est globalement complete.
 
-Points a surveiller pour la suite (non bloquants pour ce rapport):
+Points a surveiller pour la suite :
 - harmonisation finale de certains messages/encodages de texte FR dans l'UI
 - stabilisation des warnings `info` restants (deprecations mineures Flutter)
 - consolidation documentaire (README final) et procedure de lancement d'equipe (`--dart-define` pour la cle API Google Books)
