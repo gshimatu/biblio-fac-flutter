@@ -247,64 +247,88 @@ class _ManageBooksViewState extends State<ManageBooksView> {
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: queryController,
-                                decoration: InputDecoration(
-                                  hintText: 'Recherche titre, auteur ou ISBN...',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isCompact = constraints.maxWidth < 560;
+                            final searchAction = value.isExternalLoading
+                                ? null
+                                : () async {
+                                    final query = queryController.text.trim();
+                                    if (query.isEmpty) return;
+                                    await provider.searchExternalBooks(
+                                      query: query,
+                                      type: _toSearchType(mode),
+                                    );
+                                  };
+
+                            final queryField = TextField(
+                              controller: queryController,
+                              decoration: InputDecoration(
+                                hintText: 'Recherche titre, auteur ou ISBN...',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            SizedBox(
-                              width: 140,
-                              child: DropdownButtonFormField<_ApiSearchMode>(
-                                initialValue: mode,
-                                decoration: const InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Type',
-                                ),
-                                items: const [
-                                  DropdownMenuItem(
-                                    value: _ApiSearchMode.title,
-                                    child: Text('Titre'),
+                            );
+
+                            final searchTypeField =
+                                DropdownButtonFormField<_ApiSearchMode>(
+                                  initialValue: mode,
+                                  decoration: const InputDecoration(
+                                    border: OutlineInputBorder(),
+                                    labelText: 'Type',
                                   ),
-                                  DropdownMenuItem(
-                                    value: _ApiSearchMode.author,
-                                    child: Text('Auteur'),
-                                  ),
-                                  DropdownMenuItem(
-                                    value: _ApiSearchMode.isbn,
-                                    child: Text('ISBN'),
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: _ApiSearchMode.title,
+                                      child: Text('Titre'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: _ApiSearchMode.author,
+                                      child: Text('Auteur'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: _ApiSearchMode.isbn,
+                                      child: Text('ISBN'),
+                                    ),
+                                  ],
+                                  onChanged: (selected) {
+                                    if (selected == null) return;
+                                    setDialogState(() => mode = selected);
+                                  },
+                                );
+
+                            if (isCompact) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  queryField,
+                                  const SizedBox(height: 8),
+                                  searchTypeField,
+                                  const SizedBox(height: 8),
+                                  FilledButton.icon(
+                                    onPressed: searchAction,
+                                    icon: const Icon(Icons.search),
+                                    label: const Text('Rechercher'),
                                   ),
                                 ],
-                                onChanged: (selected) {
-                                  if (selected == null) return;
-                                  setDialogState(() => mode = selected);
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            FilledButton.icon(
-                              onPressed: value.isExternalLoading
-                                  ? null
-                                  : () async {
-                                      final query = queryController.text.trim();
-                                      if (query.isEmpty) return;
-                                      await provider.searchExternalBooks(
-                                        query: query,
-                                        type: _toSearchType(mode),
-                                      );
-                                    },
-                              icon: const Icon(Icons.search),
-                              label: const Text('Rechercher'),
-                            ),
-                          ],
+                              );
+                            }
+
+                            return Row(
+                              children: [
+                                Expanded(child: queryField),
+                                const SizedBox(width: 8),
+                                SizedBox(width: 140, child: searchTypeField),
+                                const SizedBox(width: 8),
+                                FilledButton.icon(
+                                  onPressed: searchAction,
+                                  icon: const Icon(Icons.search),
+                                  label: const Text('Rechercher'),
+                                ),
+                              ],
+                            );
+                          },
                         ),
                         const SizedBox(height: 12),
                         if (value.isExternalLoading)
