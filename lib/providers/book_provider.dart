@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
 import '../models/book_model.dart';
-import '../services/book_service.dart';
+import '../models/google_book_model.dart';
+import '../controllers/book_controller.dart';
+import '../services/google_books_service.dart';
 
 class BookProvider extends ChangeNotifier {
-  final BookService _bookService = BookService();
+  final BookController _bookController = BookController();
 
   List<BookModel> _books = [];
+  List<GoogleBookModel> _externalBooks = [];
   bool _isLoading = false;
+  bool _isExternalLoading = false;
   String? _error;
+  String? _externalError;
 
   List<BookModel> get books => _books;
+  List<GoogleBookModel> get externalBooks => _externalBooks;
   bool get isLoading => _isLoading;
+  bool get isExternalLoading => _isExternalLoading;
   String? get error => _error;
+  String? get externalError => _externalError;
 
   Future<void> loadBooks() async {
     _isLoading = true;
@@ -19,7 +27,7 @@ class BookProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _books = await _bookService.getAllBooks();
+      _books = await _bookController.getAllBooks();
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -29,17 +37,51 @@ class BookProvider extends ChangeNotifier {
   }
 
   Future<void> addBook(BookModel book) async {
-    await _bookService.addBook(book);
+    await _bookController.addBook(book);
     await loadBooks();
   }
 
   Future<void> updateBook(BookModel book) async {
-    await _bookService.updateBook(book);
+    await _bookController.updateBook(book);
     await loadBooks();
   }
 
   Future<void> deleteBook(String id) async {
-    await _bookService.deleteBook(id);
+    await _bookController.deleteBook(id);
+    await loadBooks();
+  }
+
+  Future<void> searchExternalBooks({
+    required String query,
+    required GoogleBookSearchType type,
+  }) async {
+    _isExternalLoading = true;
+    _externalError = null;
+    notifyListeners();
+
+    try {
+      _externalBooks = await _bookController.searchExternalBooks(
+        query: query,
+        type: type,
+      );
+    } catch (e) {
+      _externalError = e.toString();
+      _externalBooks = [];
+    } finally {
+      _isExternalLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void clearExternalResults() {
+    _externalBooks = [];
+    _externalError = null;
+    _isExternalLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> importExternalBook(BookModel book) async {
+    await _bookController.importGoogleBookToCatalog(book);
     await loadBooks();
   }
 }

@@ -47,3 +47,5 @@ app.*.map.json
 
 # NPM
 /node_modules/
+
+/.env

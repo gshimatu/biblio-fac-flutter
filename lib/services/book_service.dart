@@ -47,4 +47,20 @@ class BookService {
         .map((doc) => BookModel.fromMap(doc.data(), doc.id))
         .toList();
   }
+
+  /// Recherche exacte par ISBN
+  Future<BookModel?> getBookByIsbn(String isbn) async {
+    final normalized = isbn.trim();
+    if (normalized.isEmpty) return null;
+
+    final snapshot = await _firestore
+        .collection(_collection)
+        .where('isbn', isEqualTo: normalized)
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isEmpty) return null;
+    final doc = snapshot.docs.first;
+    return BookModel.fromMap(doc.data(), doc.id);
+  }
 }
