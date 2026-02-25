@@ -20,6 +20,15 @@ class LoanService {
         .toList();
   }
 
+  /// Flux temps reel de tous les emprunts
+  Stream<List<LoanModel>> streamAllLoans() {
+    return _firestore.collection(_collection).snapshots().map((snapshot) {
+      return snapshot.docs
+          .map((doc) => LoanModel.fromMap(doc.data(), doc.id))
+          .toList();
+    });
+  }
+
   /// Recuperer les emprunts d'un utilisateur
   Future<List<LoanModel>> getLoansByUser(String userId) async {
     final snapshot = await _firestore
@@ -30,6 +39,19 @@ class LoanService {
     return snapshot.docs
         .map((doc) => LoanModel.fromMap(doc.data(), doc.id))
         .toList();
+  }
+
+  /// Flux temps reel des emprunts d'un utilisateur
+  Stream<List<LoanModel>> streamLoansByUser(String userId) {
+    return _firestore
+        .collection(_collection)
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => LoanModel.fromMap(doc.data(), doc.id))
+          .toList();
+    });
   }
 
   /// Valider un emprunt (admin):

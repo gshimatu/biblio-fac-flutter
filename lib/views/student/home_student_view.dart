@@ -54,7 +54,10 @@ class _HomeStudentViewState extends State<HomeStudentView> {
     final books = Provider.of<BookProvider>(context, listen: false);
     final loans = Provider.of<LoanProvider>(context, listen: false);
     setState(() => _loadingReservations = true);
-    await Future.wait([books.loadBooks(), loans.loadUserLoans()]);
+    await Future.wait([
+      books.loadBooks(),
+      loans.startUserLoansRealtime(userId: user.uid),
+    ]);
     try {
       final reservations = await _reservationService.getReservationsByUser(user.uid);
       if (mounted) setState(() => _reservations = reservations);

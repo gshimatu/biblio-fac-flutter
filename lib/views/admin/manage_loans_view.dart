@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../models/book_model.dart';
@@ -24,6 +26,7 @@ class _ManageLoansViewState extends State<ManageLoansView> {
   final TextEditingController _searchController = TextEditingController();
   bool _isLoading = true;
   String? _error;
+  StreamSubscription<List<LoanModel>>? _loansSubscription;
 
   List<LoanModel> _loans = [];
   Map<String, BookModel> _booksById = {};
@@ -39,36 +42,51 @@ class _ManageLoansViewState extends State<ManageLoansView> {
     _searchController.addListener(() {
       setState(() => _search = _searchController.text.trim().toLowerCase());
     });
-    _loadData();
+    _initializeRealtime();
   }
 
   @override
   void dispose() {
+    _loansSubscription?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadData() async {
+  Future<void> _initializeRealtime() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
+
     try {
-      final results = await Future.wait([
-        _loanService.getAllLoans(),
-        _bookService.getAllBooks(),
-        _userService.getAllUsers(),
-      ]);
-      final loans = results[0] as List<LoanModel>;
-      final books = results[1] as List<BookModel>;
-      final users = results[2] as List<UserModel>;
+      final results = await Future.wait([_bookService.getAllBooks(), _userService.getAllUsers()]);
+      final books = results[0] as List<BookModel>;
+      final users = results[1] as List<UserModel>;
 
       if (!mounted) return;
       setState(() {
-        _loans = loans;
         _booksById = {for (final b in books) b.id: b};
         _usersById = {for (final u in users) u.uid: u};
       });
+
+      await _loansSubscription?.cancel();
+      _loansSubscription = _loanService.streamAllLoans().listen(
+        (loans) {
+          if (!mounted) return;
+          setState(() {
+            _loans = loans;
+            _isLoading = false;
+            _error = null;
+          });
+        },
+        onError: (error) {
+          if (!mounted) return;
+          setState(() {
+            _isLoading = false;
+            _error = _friendlyError(error);
+          });
+        },
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = _friendlyError(e));
@@ -134,7 +152,6 @@ class _ManageLoansViewState extends State<ManageLoansView> {
   }) async {
     try {
       await action();
-      await _loadData();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(successMessage)));
     } catch (e) {
@@ -219,7 +236,7 @@ class _ManageLoansViewState extends State<ManageLoansView> {
                       width: 180,
                       child: DropdownButtonFormField<String>(
                         isExpanded: true,
-                        value: _statusFilter,
+                        initialValue: _statusFilter,
                         decoration: const InputDecoration(
                           labelText: 'Statut',
                           border: OutlineInputBorder(),
@@ -241,7 +258,7 @@ class _ManageLoansViewState extends State<ManageLoansView> {
                       width: 200,
                       child: DropdownButtonFormField<_LoanSortOption>(
                         isExpanded: true,
-                        value: _sortOption,
+                        initialValue: _sortOption,
                         decoration: const InputDecoration(
                           labelText: 'Trier',
                           border: OutlineInputBorder(),
@@ -282,7 +299,7 @@ class _ManageLoansViewState extends State<ManageLoansView> {
                         ),
                       )
                     : RefreshIndicator(
-                        onRefresh: _loadData,
+                        onRefresh: _initializeRealtime,
                         child: loans.isEmpty
                             ? ListView(
                                 children: [
@@ -307,7 +324,7 @@ class _ManageLoansViewState extends State<ManageLoansView> {
                             : ListView.separated(
                                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
                                 itemCount: loans.length,
-                                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                                separatorBuilder: (_, _) => const SizedBox(height: 10),
                                 itemBuilder: (context, index) {
                                   final loan = loans[index];
                                   final book = _booksById[loan.bookId];
